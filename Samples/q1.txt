@@ -1,0 +1,93 @@
+function criarFormulario() {
+  var form = FormApp.create('QUESTIONÁRIO DE PRÉ-TESTE – VALIDAÇÃO DAS CAUSAS DE EVASÃO\nE JULGAMENTOS AHP');
+  form.setDescription('Prezados(as),\n\nEste instrumento faz parte da etapa de pré-teste da pesquisa de mestrado sobre a evasão no curso de curso não informado do(a) Projeto 2. Seus objetivos são: (1) validar a clareza e a relevância das causas de evasão identificadas na literatura; e (2) definir os pesos dos grupos de atores para a tomada de decisão. A participação é voluntária e anônima. O tempo estimado de preenchimento é de 10 a 15 minutos.');
+  var termoConsentimento = form.addMultipleChoiceItem();
+  termoConsentimento.setTitle('TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO (TCLE)');
+  termoConsentimento.setHelpText('Declaro que li e compreendi as informações desta pesquisa. Minha participação é voluntária, posso interromper a qualquer momento e autorizo o uso das respostas para fins acadêmicos, de forma anônima.');
+  termoConsentimento.setRequired(true);
+  var secaoDadosIniciais = form.addPageBreakItem();
+  secaoDadosIniciais.setTitle('PERFIL DO RESPONDENTE');
+  termoConsentimento.setChoices([
+    termoConsentimento.createChoice('Li e concordo em participar', secaoDadosIniciais),
+    termoConsentimento.createChoice('Não concordo', FormApp.PageNavigationType.SUBMIT)
+  ]);
+
+  var perfilVinculo = form.addMultipleChoiceItem();
+  perfilVinculo.setTitle('Informe seu vínculo com o curso de curso não informado do(a) Projeto 2:');
+  perfilVinculo.setChoiceValues(['(Ex)coordenação', 'Docentes']);
+  perfilVinculo.setRequired(true);
+
+  var perfilSexo = form.addMultipleChoiceItem();
+  perfilSexo.setTitle('Sexo:');
+  perfilSexo.setChoiceValues(['Feminino', 'Masculino', 'Prefiro não responder']);
+  perfilSexo.setRequired(true);
+
+  var perfilFaixaEtaria = form.addMultipleChoiceItem();
+  perfilFaixaEtaria.setTitle('Faixa etária:');
+  perfilFaixaEtaria.setChoiceValues(['Menos de 20 anos', '20 a 24 anos', '25 a 29 anos', '30 a 39 anos', '40 anos ou mais']);
+  perfilFaixaEtaria.setRequired(true);
+
+  var perfilTempo = form.addMultipleChoiceItem();
+  perfilTempo.setTitle('Tempo de atuação/vínculo com o curso de curso não informado do(a) Projeto 2:');
+  perfilTempo.setChoiceValues(['Menos de 2 anos', 'De 2 a 5 anos', 'De 6 a 10 anos', 'Mais de 10 anos']);
+  perfilTempo.setRequired(true);
+
+  var perfilPrincipalAtuacao = form.addCheckboxItem();
+  perfilPrincipalAtuacao.setTitle('Principal perfil de atuação no curso de curso não informado do(a) Projeto 2 (pode marcar mais de uma opção):');
+  perfilPrincipalAtuacao.setChoiceValues([
+    'Disciplinas/atividades de base ou formação inicial (por exemplo, conteúdos introdutórios e fundamentos)',
+    'Disciplinas/atividades de formação específica do curso (por exemplo, componentes centrais da área)',
+    'Disciplinas/atividades de prática profissional, integração teoria-prática e/ou metodologias aplicadas',
+    'Disciplinas/atividades das etapas finais do curso (por exemplo, estágio, TCC, projeto integrador, internato)',
+    'Ações de apoio estudantil, monitoria, tutoria ou projetos de acolhimento'
+  ]);
+  perfilPrincipalAtuacao.setRequired(true);
+
+  var secaoQuestionario = form.addPageBreakItem();
+  secaoQuestionario.setTitle('AVALIAÇÃO DAS CAUSAS DE EVASÃO');
+  secaoQuestionario.setHelpText('Instrução: com base na sua experiência e trajetória em relação ao curso de curso não informado do(a) Projeto 2, avalie em que medida cada fator abaixo contribui para a evasão de estudantes do curso, utilizando a escala Likert de 1 a 5.\n\n1 = Muito fraca\n2 = Fraca\n3 = Moderada\n4 = Forte\n5 = Muito forte\n\nMarque apenas uma opção por linha:');
+
+  var causasItem = form.addGridItem();
+  causasItem.setTitle('Causa da evasão:');
+  causasItem.setRows(['C01. Atuação e qualificação do corpo docente: falta de didática, desinteresse, relação professor-aluno conflituosa, falhas na orientação.', 'C02. Baixo desempenho acadêmico: reprovações sucessivas, notas baixas, retenção, fracasso nas avaliações.', 'C03. Conflito entre trabalho e estudo: necessidade de trabalhar, incompatibilidade de horários, cansaço, falta de licença do empregador.', 'C04. Deficiência na formação básica anterior: lacunas do Ensino Médio/Fundamental, falta de conhecimentos básicos.', 'C05. Dificuldades de aprendizagem e competências individuais: hábitos de estudo, gestão do tempo, autonomia, habilidades cognitivas.', 'C06. Dificuldades financeiras: baixa renda, falta de auxílio/bolsas, custos com transporte/moradia/alimentação, inadimplência.', 'C07. Falta de identificação com o curso: escolha equivocada, falta de vocação, insatisfação com a área.', 'C08. Falta de integração social e acadêmica: isolamento, não pertencimento, dificuldade de relacionamento com colegas.', 'C09. Falta de motivação e expectativas frustradas: desencanto, falta de perspectiva, expectativas irreais sobre o curso/instituição.', 'C10. Fatores de imaturidade e idade: entrada precoce, idade avançada.', 'C11. Fatores familiares: pressão, falta de apoio, responsabilidades com filhos/dependentes, baixa escolaridade dos pais.', 'C12. Infraestrutura e gestão institucional deficientes: burocracia, falta de apoio/suporte, falhas de comunicação, precariedade física/tecnológica.', 'C13. Localização e mobilidade: distância da residência, mudança de cidade.', 'C14. Mercado de trabalho e contexto externo: desemprego, desvalorização da profissão, crise econômica.', 'C15. Normas institucionais punitivas ou excludentes: jubilamento, sistema de avaliação rígido)', 'C16. Problemas de saúde física e mental: estresse, ansiedade, depressão, esgotamento emocional.', 'C17. Questões didático-pedagógicas e curriculares: currículo desatualizado/rígido, metodologia de ensino, carga horária excessiva.']);
+  causasItem.setColumns(['1', '2', '3', '4', '5']);
+  causasItem.setRequired(true);
+
+  var secaoComparacoesAhp = form.addPageBreakItem();
+  secaoComparacoesAhp.setTitle('JULGAMENTOS PARA O AHP');
+  secaoComparacoesAhp.setHelpText('Nesta seção, pedimos que você compare a importância relativa das percepções de cada grupo para definir prioridades de ações contra a evasão, utilizando a escala Saaty de 1 a 9.\n\n1 = Igual\n3 = Moderada\n5 = Forte\n7 = Muito forte\n9 = Extrema\n\n2, 4, 6, 8 Valores intermediários entre os julgamentos anteriores');
+
+  var pergunta2 = form.addMultipleChoiceItem();
+  pergunta2.setTitle('(Ex)coordenação ou Docentes: qual é mais relevante para decidir as prioridades de ações contra a evasão?');
+  pergunta2.setChoiceValues(['(Ex)coordenação', 'Docentes', 'Igual']);
+  pergunta2.setRequired(true);
+
+  var pergunta3 = form.addScaleItem();
+  pergunta3.setTitle('Na comparação (Ex)coordenação ou Docentes acima, qual a intensidade da importância relativa do grupo escolhido? Se você marcou "Igual", assinale 1.');
+  pergunta3.setBounds(1, 9);
+  pergunta3.setLabels('Igual', 'Extrema');
+  pergunta3.setRequired(true);
+
+  var pergunta4 = form.addMultipleChoiceItem();
+  pergunta4.setTitle('(Ex)coordenação ou Discentes: qual é mais relevante para decidir as prioridades de ações contra a evasão?');
+  pergunta4.setChoiceValues(['(Ex)coordenação', 'Discentes', 'Igual']);
+  pergunta4.setRequired(true);
+
+  var pergunta5 = form.addScaleItem();
+  pergunta5.setTitle('Na comparação (Ex)coordenação ou Discentes acima, qual a intensidade da importância relativa do grupo escolhido? Se você marcou "Igual", assinale 1.');
+  pergunta5.setBounds(1, 9);
+  pergunta5.setLabels('Igual', 'Extrema');
+  pergunta5.setRequired(true);
+
+  var pergunta6 = form.addMultipleChoiceItem();
+  pergunta6.setTitle('Docentes ou Discentes: qual é mais relevante para decidir as prioridades de ações contra a evasão?');
+  pergunta6.setChoiceValues(['Docentes', 'Discentes', 'Igual']);
+  pergunta6.setRequired(true);
+
+  var pergunta7 = form.addScaleItem();
+  pergunta7.setTitle('Na comparação Docentes ou Discentes acima, qual a intensidade da importância relativa do grupo escolhido? Se você marcou "Igual", assinale 1.');
+  pergunta7.setBounds(1, 9);
+  pergunta7.setLabels('Igual', 'Extrema');
+  pergunta7.setRequired(true);
+
+}

@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>PrimeiraTelaWinUI</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="WinRT.Runtime">
+      <HintPath>RecoveredArtifacts\WinRT.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAppRuntime.Bootstrap.Net">
+      <HintPath>RecoveredArtifacts\Microsoft.WindowsAppRuntime.Bootstrap.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WinUI">
+      <HintPath>RecoveredArtifacts\Microsoft.WinUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Windows.SDK.NET">
+      <HintPath>RecoveredArtifacts\Microsoft.Windows.SDK.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.InteractiveExperiences.Projection">
+      <HintPath>RecoveredArtifacts\Microsoft.InteractiveExperiences.Projection.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RecoveredArtifacts\Assets\**\*">
+      <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\Views\**\*">
+      <Link>Views\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\App.xbf">
+      <Link>App.xbf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\PrimeiraTelaWinUI.pri">
+      <Link>PrimeiraTelaWinUI.pri</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\PrimeiraTelaWinUI.pdb">
+      <Link>PrimeiraTelaWinUI.recovered.pdb</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\Native\Microsoft.WindowsAppRuntime.Bootstrap.dll">
+      <Link>Microsoft.WindowsAppRuntime.Bootstrap.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\Native\WebView2Loader.dll">
+      <Link>WebView2Loader.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecoveredArtifacts\Native\Microsoft.Windows.ApplicationModel.Background.UniversalBGTask.dll">
+      <Link>Microsoft.Windows.ApplicationModel.Background.UniversalBGTask.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

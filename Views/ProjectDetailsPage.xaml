@@ -1,0 +1,283 @@
+<Page
+    x:Class="PrimeiraTelaWinUI.Views.ProjectDetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:PrimeiraTelaWinUI.Views"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        </Style>
+    </Page.Resources>
+
+    <Grid
+        x:Name="PageRootGrid"
+        Background="Transparent"
+        Tapped="OnPageBackgroundTapped">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="32" Spacing="20">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Click="OnBackClicked" Content="Voltar" />
+                    <TextBlock
+                        x:Name="PageTitleTextBlock"
+                        Grid.Column="1"
+                        FontSize="30"
+                        FontWeight="SemiBold"
+                        Text="Visao geral do projeto"
+                        TextWrapping="WrapWholeWords" />
+                </Grid>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <Grid ColumnSpacing="20" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="ProjectNameTextBlock" Text="-" TextWrapping="WrapWholeWords" />
+                        <TextBlock x:Name="ProjectFolderTextBlock" Grid.Column="1" Text="-" TextWrapping="WrapWholeWords" />
+                        <TextBlock x:Name="ProjectCreatedTextBlock" Grid.Row="1" Text="-" />
+                        <TextBlock x:Name="ProjectModifiedTextBlock" Grid.Row="1" Grid.Column="1" Text="-" />
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Relatorios e TOPSIS" />
+                        <TextBlock x:Name="ReportsTextBlock" Text="Ultimas importacoes: q1.csv: - | q2.csv: - | causas.csv: -." TextWrapping="WrapWholeWords" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ReportsTopCauseValueTextBlock" Grid.Column="0" Text="-" TextWrapping="WrapWholeWords" />
+                            <TextBlock x:Name="ReportsCrGlobalValueTextBlock" Grid.Column="1" Text="-" TextWrapping="WrapWholeWords" />
+                            <TextBlock x:Name="ReportsApprovedCausesValueTextBlock" Grid.Column="2" Text="-" TextWrapping="WrapWholeWords" />
+                            <TextBlock x:Name="ReportsRespondentsValueTextBlock" Grid.Column="3" Text="Q1: 0 | Q2: 0" TextWrapping="WrapWholeWords" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnRefreshReportsClicked" Content="Atualizar relatorios" />
+                            <Button Click="OnExportReportsCsvClicked" Content="Exportar CSV" />
+                            <Button Click="OnCopyReportsSummaryClicked" Content="Copiar resumo" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnImportQ2CsvClicked" Content="Importar q2.csv" />
+                            <Button Click="OnClearQ2TableClicked" Content="Limpar Q2" />
+                        </StackPanel>
+                        <TextBlock x:Name="ReportsTopTopsisStatusTextBlock" Text="Importe q2.csv para exibir o ranking TOPSIS." TextWrapping="WrapWholeWords" />
+                        <ListView x:Name="ReportsTopTopsisListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:TopsisTableRow">
+                                    <Grid ColumnSpacing="12" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind Id}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Cause}" TextWrapping="WrapWholeWords" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind Rank}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock x:Name="TopsisStatusTextBlock" Text="Importe q2.csv para visualizar a tabela." TextWrapping="WrapWholeWords" />
+                        <ListView x:Name="Q2TableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:TopsisTableRow">
+                                    <Grid ColumnSpacing="12" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind Id}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Cause}" TextWrapping="WrapWholeWords" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind Rank}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="AHP" />
+                        <TextBlock x:Name="TeamAhpTextBlock" Text="Nenhum grupo disponivel para AHP." TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <NumberBox x:Name="AhpConsistencyNumberBox" Header="Limite CR (%)" Minimum="0" SmallChange="0.1" SpinButtonPlacementMode="Compact" Value="10" />
+                            <TextBlock x:Name="AhpGlobalCrTextBlock" VerticalAlignment="Center" Text="-" />
+                            <Border x:Name="AhpCrStatusBadgeBorder" Padding="10,6" CornerRadius="999" VerticalAlignment="Center">
+                                <TextBlock x:Name="AhpCrStatusBadgeTextBlock" FontWeight="SemiBold" Text="Pendente" />
+                            </Border>
+                            <Button Click="OnExportQ2TxtClicked" Content="Exportar TXT Q2" />
+                        </StackPanel>
+                        <ListView x:Name="AhpTableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:AhpTableRow">
+                                    <Grid ColumnSpacing="12" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="120" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind Id}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Group}" TextWrapping="WrapWholeWords" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind Weight}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Validacao Q1" />
+                        <TextBlock x:Name="TeamAssignmentsTextBlock" Text="Importe q1.csv para visualizar a tabela." TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnImportQ1CsvClicked" Content="Importar q1.csv" />
+                            <Button Click="OnClearQ1TableClicked" Content="Limpar Q1" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <CheckBox x:Name="Scale5CheckBox" Checked="OnScaleSelectionChanged" Content="5" IsChecked="True" Unchecked="OnScaleSelectionChanged" />
+                            <CheckBox x:Name="Scale4CheckBox" Checked="OnScaleSelectionChanged" Content="4" IsChecked="True" Unchecked="OnScaleSelectionChanged" />
+                            <CheckBox x:Name="Scale3CheckBox" Checked="OnScaleSelectionChanged" Content="3" Unchecked="OnScaleSelectionChanged" />
+                            <CheckBox x:Name="Scale2CheckBox" Checked="OnScaleSelectionChanged" Content="2" Unchecked="OnScaleSelectionChanged" />
+                            <CheckBox x:Name="Scale1CheckBox" Checked="OnScaleSelectionChanged" Content="1" Unchecked="OnScaleSelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <NumberBox x:Name="ValidationAverageNumberBox" Header="Media minima" Minimum="0" SmallChange="0.1" SpinButtonPlacementMode="Compact" Value="4" />
+                            <NumberBox x:Name="ValidationProportionNumberBox" Header="Proporcao minima (%)" Minimum="0" SmallChange="1" SpinButtonPlacementMode="Compact" Value="70" />
+                        </StackPanel>
+                        <ListView x:Name="Q1TableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:Q1TableRow">
+                                    <Grid ColumnSpacing="10" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind Number}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Cause}" TextWrapping="WrapWholeWords" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind Value1}" />
+                                        <TextBlock Grid.Column="3" Text="{x:Bind Value2}" />
+                                        <TextBlock Grid.Column="4" Text="{x:Bind Value3}" />
+                                        <TextBlock Grid.Column="5" Text="{x:Bind Value4}" />
+                                        <TextBlock Grid.Column="6" Text="{x:Bind Value5}" />
+                                        <TextBlock Grid.Column="7" Text="{x:Bind Average}" />
+                                        <TextBlock Grid.Column="8" Text="{x:Bind Proportion}" />
+                                        <TextBlock Grid.Column="9" Text="{x:Bind Status}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Causas" />
+                        <TextBlock x:Name="CausesStatusTextBlock" Text="Nenhuma causa cadastrada." TextWrapping="WrapWholeWords" />
+                        <ItemsControl x:Name="Q1VinculoGroupsItemsControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="local:GroupSelectionOption">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                        <TextBlock Text="{x:Bind GroupName}" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnExportQ1TxtClicked" Content="Exportar TXT Q1" />
+                            <Button Click="OnImportCausesCsvClicked" Content="Importar causas.csv" />
+                            <Button Click="OnDownloadCausesTemplateClicked" Content="Baixar modelo" />
+                            <Button Click="OnClearCausesClicked" Content="Limpar causas" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button x:Name="RenameCauseButton" Click="OnRenameCauseClicked" Content="Renomear" IsEnabled="False" />
+                            <Button x:Name="DeleteCauseButton" Click="OnDeleteCauseClicked" Content="Excluir" IsEnabled="False" />
+                            <Button Click="OnAddCauseClicked" Content="Adicionar causa" />
+                        </StackPanel>
+                        <ListView
+                            x:Name="CausesListView"
+                            HorizontalContentAlignment="Stretch"
+                            SelectionChanged="OnCausesSelectionChanged"
+                            SelectionMode="Single">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:NamedListItem">
+                                    <Grid ColumnSpacing="12" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind ItemId}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextWrapping="WrapWholeWords" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Grupos" />
+                        <TextBlock x:Name="GroupsStatusTextBlock" Text="Nenhum grupo cadastrado." TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnAddGroupClicked" Content="Adicionar grupo" />
+                            <Button x:Name="RenameGroupButton" Click="OnRenameGroupClicked" Content="Renomear" IsEnabled="False" />
+                            <Button x:Name="DeleteGroupButton" Click="OnDeleteGroupClicked" Content="Excluir" IsEnabled="False" />
+                            <Button Click="OnClearGroupsClicked" Content="Limpar grupos" />
+                        </StackPanel>
+                        <ListView
+                            x:Name="GroupsListView"
+                            HorizontalContentAlignment="Stretch"
+                            SelectionChanged="OnGroupsSelectionChanged"
+                            SelectionMode="Single">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:NamedListItem">
+                                    <Grid ColumnSpacing="12" Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind ItemId}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextWrapping="WrapWholeWords" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -1,0 +1,45 @@
+function criarFormulario() {
+  var form = FormApp.create('QUESTIONÁRIO FINAL - AVALIAÇÃO DA INTENSIDADE DAS CAUSAS');
+  form.setDescription('Prezado(a) participante,\n\nEste questionário integra a etapa final da pesquisa de mestrado sobre a evasão no curso de Licenciatura em Física. O objetivo é mensurar a intensidade com que diferentes fatores influenciam a decisão de evasão em nosso curso. Sua resposta é anônima e fundamental para a elaboração de um plano de ações. O tempo estimado de preenchimento é de 5 minutos.');
+  var termoConsentimento = form.addMultipleChoiceItem();
+  termoConsentimento.setTitle('TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO (TCLE)');
+  termoConsentimento.setHelpText('Declaro que li e compreendi as informações desta pesquisa. Minha participação é voluntária, posso interromper a qualquer momento e autorizo o uso das respostas para fins acadêmicos, de forma anônima.');
+  termoConsentimento.setRequired(true);
+  var secaoDadosIniciais = form.addPageBreakItem();
+  secaoDadosIniciais.setTitle('PERFIL DO RESPONDENTE');
+  termoConsentimento.setChoices([
+    termoConsentimento.createChoice('Li e concordo em participar', secaoDadosIniciais),
+    termoConsentimento.createChoice('Não concordo', FormApp.PageNavigationType.SUBMIT)
+  ]);
+
+  var perfilVinculo = form.addMultipleChoiceItem();
+  perfilVinculo.setTitle('Informe seu vínculo com o curso de curso não informado do(a) Projeto 2:');
+  perfilVinculo.setChoiceValues(['(Ex-)coordenação', 'Docentes', 'Discentes']);
+  perfilVinculo.setRequired(true);
+
+  var perfilSexo = form.addMultipleChoiceItem();
+  perfilSexo.setTitle('Sexo:');
+  perfilSexo.setChoiceValues(['Feminino', 'Masculino', 'Prefiro não responder']);
+  perfilSexo.setRequired(true);
+
+  var perfilFaixaEtaria = form.addMultipleChoiceItem();
+  perfilFaixaEtaria.setTitle('Faixa etária:');
+  perfilFaixaEtaria.setChoiceValues(['Menos de 20 anos', '20 a 24 anos', '25 a 29 anos', '30 a 39 anos', '40 anos ou mais']);
+  perfilFaixaEtaria.setRequired(true);
+
+  var perfilTempo = form.addMultipleChoiceItem();
+  perfilTempo.setTitle('Tempo de atuação/vínculo com o curso de curso não informado do(a) Projeto 2:');
+  perfilTempo.setChoiceValues(['Menos de 2 anos', 'De 2 a 5 anos', 'De 6 a 10 anos', 'Mais de 10 anos']);
+  perfilTempo.setRequired(true);
+
+  var secaoQuestionario = form.addPageBreakItem();
+  secaoQuestionario.setTitle('AVALIAÇÃO DAS CAUSAS DE EVASÃO');
+  secaoQuestionario.setHelpText('Instrução: com base na sua experiência e trajetória em relação ao curso de curso não informado do(a) Projeto 2, avalie em que medida cada fator abaixo contribui para a evasão de estudantes do curso, utilizando a escala Likert de 1 a 5.\n\n1 = Muito fraca\n2 = Fraca\n3 = Moderada\n4 = Forte\n5 = Muito forte\n\nMarque apenas uma opção por linha:');
+
+  var causasItem = form.addGridItem();
+  causasItem.setTitle('Causa da evasão:');
+  causasItem.setRows(['C02. Baixo desempenho acadêmico: reprovações sucessivas, notas baixas, retenção, fracasso nas avaliações.', 'C03. Conflito entre trabalho e estudo: necessidade de trabalhar, incompatibilidade de horários, cansaço, falta de licença do empregador.', 'C04. Deficiência na formação básica anterior: lacunas do Ensino Médio/Fundamental, falta de conhecimentos básicos.', 'C05. Dificuldades de aprendizagem e competências individuais: hábitos de estudo, gestão do tempo, autonomia, habilidades cognitivas.', 'C09. Falta de motivação e expectativas frustradas: desencanto, falta de perspectiva, expectativas irreais sobre o curso/instituição.', 'C12. Infraestrutura e gestão institucional deficientes: burocracia, falta de apoio/suporte, falhas de comunicação, precariedade física/tecnológica.', 'C16. Problemas de saúde física e mental: estresse, ansiedade, depressão, esgotamento emocional.', 'C17. Questões didático-pedagógicas e curriculares: currículo desatualizado/rígido, metodologia de ensino, carga horária excessiva.']);
+  causasItem.setColumns(['1', '2', '3', '4', '5']);
+  causasItem.setRequired(true);
+
+}
