@@ -2,8 +2,6 @@
 
 SADMAT é um aplicativo desktop WinUI 3 para apoio à decisão multicritério sobre evasão estudantil, combinando validação de causas, cálculo de pesos AHP e ranking TOPSIS.
 
-O projeto atual é uma reconstrução de um aplicativo já instalado. O código-fonte foi recuperado a partir do assembly e de artefatos binários, por isso ainda depende de arquivos em `RecoveredArtifacts/`. Mais detalhes estão em `RECOVERY_NOTES.md`.
-
 ## O que o app faz
 
 1. Gerencia projetos por instituição/curso.
@@ -29,15 +27,15 @@ Executável gerado:
 bin\Debug\net8.0-windows10.0.19041.0\PrimeiraTelaWinUI.exe
 ```
 
-Observação: o build passa, mas ainda emite avisos de nulidade herdados da recuperação do projeto.
+Observação: o build passa, mas ainda emite avisos de nulidade que podem ser tratados em uma etapa de refinamento do código.
 
 ## Estrutura principal
 
 - `PrimeiraTelaWinUI/`: código C# principal do app.
-- `Views/`: XAML reconstruído das telas.
-- `RecoveredArtifacts/`: binários, `.xbf`, `.pri` e assets recuperados.
+- `Views/`: XAML das telas.
+- `AppAssets/`: assets, recursos empacotados e dependências locais usadas pelo app.
 - `Samples/`: amostras de `causas.csv`, `q1.csv`, `q2.csv` e scripts `q1.txt`/`q2.txt`.
-- `RECOVERY_NOTES.md`: histórico e limitações da recuperação.
+- `NOTES.md`: notas do projeto.
 
 ## Documentação adicional
 

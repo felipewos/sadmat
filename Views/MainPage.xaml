@@ -40,7 +40,7 @@
             <TextBlock
                 MaxWidth="880"
                 Style="{StaticResource CaptionTextStyle}"
-                Text="Lista reconstruida a partir do binario. Abra, renomeie ou exclua o projeto selecionado." />
+                Text="Abra, renomeie ou exclua o projeto selecionado." />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">

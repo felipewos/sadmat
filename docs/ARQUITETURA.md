@@ -39,13 +39,13 @@ Esse arquivo concentra:
 8. Cálculo do ranking final das causas.
 9. Geração do relatório exportável em CSV.
 
-## Artefatos recuperados
+## Recursos locais
 
-O projeto ainda depende de recursos em `RecoveredArtifacts/`, incluindo:
+O projeto usa recursos locais em `AppAssets/`, incluindo:
 
-- `.xbf` reconstruídos da interface.
+- arquivos `.xbf` da interface.
 - `.pri` do app.
 - DLLs necessárias para a execução.
 - assets de ícone e imagens.
 
-Isso reflete o estado atual da recuperação. O XAML em `Views/` é uma reconstrução manual e não representa integralmente o projeto original.
+O XAML em `Views/` representa a estrutura atual das telas usada pelo projeto.
