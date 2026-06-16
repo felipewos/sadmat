@@ -35,7 +35,7 @@
                         Grid.Column="1"
                         FontSize="30"
                         FontWeight="SemiBold"
-                        Text="Visao geral do projeto"
+                        Text="Projeto escolar"
                         TextWrapping="WrapWholeWords" />
                 </Grid>
 
@@ -58,8 +58,8 @@
 
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Relatorios e TOPSIS" />
-                        <TextBlock x:Name="ReportsTextBlock" Text="Ultimas importacoes: q1.csv: - | q2.csv: - | causas.csv: -." TextWrapping="WrapWholeWords" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Relatório e ranking final" />
+                        <TextBlock x:Name="ReportsTextBlock" Text="Últimas importações: validação (q1.csv: -) | final (q2.csv: -) | causas (causas.csv: -)." TextWrapping="WrapWholeWords" />
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -70,18 +70,18 @@
                             <TextBlock x:Name="ReportsTopCauseValueTextBlock" Grid.Column="0" Text="-" TextWrapping="WrapWholeWords" />
                             <TextBlock x:Name="ReportsCrGlobalValueTextBlock" Grid.Column="1" Text="-" TextWrapping="WrapWholeWords" />
                             <TextBlock x:Name="ReportsApprovedCausesValueTextBlock" Grid.Column="2" Text="-" TextWrapping="WrapWholeWords" />
-                            <TextBlock x:Name="ReportsRespondentsValueTextBlock" Grid.Column="3" Text="Q1: 0 | Q2: 0" TextWrapping="WrapWholeWords" />
+                            <TextBlock x:Name="ReportsRespondentsValueTextBlock" Grid.Column="3" Text="Validação: 0 | Final: 0" TextWrapping="WrapWholeWords" />
                         </Grid>
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnRefreshReportsClicked" Content="Atualizar relatorios" />
-                            <Button Click="OnExportReportsCsvClicked" Content="Exportar CSV" />
+                            <Button Click="OnRefreshReportsClicked" Content="Atualizar relatório" />
+                            <Button Click="OnExportReportsCsvClicked" Content="Exportar relatório" />
                             <Button Click="OnCopyReportsSummaryClicked" Content="Copiar resumo" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnImportQ2CsvClicked" Content="Importar q2.csv" />
-                            <Button Click="OnClearQ2TableClicked" Content="Limpar Q2" />
+                            <Button Click="OnImportQ2CsvClicked" Content="Importar respostas finais" />
+                            <Button Click="OnClearQ2TableClicked" Content="Limpar ranking" />
                         </StackPanel>
-                        <TextBlock x:Name="ReportsTopTopsisStatusTextBlock" Text="Importe q2.csv para exibir o ranking TOPSIS." TextWrapping="WrapWholeWords" />
+                        <TextBlock x:Name="ReportsTopTopsisStatusTextBlock" Text="Importe as respostas finais para exibir o ranking." TextWrapping="WrapWholeWords" />
                         <ListView x:Name="ReportsTopTopsisListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="local:TopsisTableRow">
@@ -98,7 +98,7 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                        <TextBlock x:Name="TopsisStatusTextBlock" Text="Importe q2.csv para visualizar a tabela." TextWrapping="WrapWholeWords" />
+                        <TextBlock x:Name="TopsisStatusTextBlock" Text="Importe as respostas finais para montar o ranking." TextWrapping="WrapWholeWords" />
                         <ListView x:Name="Q2TableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="local:TopsisTableRow">
@@ -120,15 +120,15 @@
 
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="AHP" />
-                        <TextBlock x:Name="TeamAhpTextBlock" Text="Nenhum grupo disponivel para AHP." TextWrapping="WrapWholeWords" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Peso dos grupos" />
+                        <TextBlock x:Name="TeamAhpTextBlock" Text="Nenhum grupo participante disponível para calcular pesos." TextWrapping="WrapWholeWords" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <NumberBox x:Name="AhpConsistencyNumberBox" Header="Limite CR (%)" Minimum="0" SmallChange="0.1" SpinButtonPlacementMode="Compact" Value="10" />
+                            <NumberBox x:Name="AhpConsistencyNumberBox" Header="Limite de inconsistência (%)" Minimum="0" SmallChange="0.1" SpinButtonPlacementMode="Compact" Value="10" />
                             <TextBlock x:Name="AhpGlobalCrTextBlock" VerticalAlignment="Center" Text="-" />
                             <Border x:Name="AhpCrStatusBadgeBorder" Padding="10,6" CornerRadius="999" VerticalAlignment="Center">
                                 <TextBlock x:Name="AhpCrStatusBadgeTextBlock" FontWeight="SemiBold" Text="Pendente" />
                             </Border>
-                            <Button Click="OnExportQ2TxtClicked" Content="Exportar TXT Q2" />
+                            <Button Click="OnExportQ2TxtClicked" Content="Gerar questionário final" />
                         </StackPanel>
                         <ListView x:Name="AhpTableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
                             <ListView.ItemTemplate>
@@ -151,22 +151,22 @@
 
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Validacao Q1" />
-                        <TextBlock x:Name="TeamAssignmentsTextBlock" Text="Importe q1.csv para visualizar a tabela." TextWrapping="WrapWholeWords" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Aprovação das causas" />
+                        <TextBlock x:Name="TeamAssignmentsTextBlock" Text="Importe as respostas de validação para aprovar as causas." TextWrapping="WrapWholeWords" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnImportQ1CsvClicked" Content="Importar q1.csv" />
-                            <Button Click="OnClearQ1TableClicked" Content="Limpar Q1" />
+                            <Button Click="OnImportQ1CsvClicked" Content="Importar respostas de validação" />
+                            <Button Click="OnClearQ1TableClicked" Content="Limpar validação" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <CheckBox x:Name="Scale5CheckBox" Checked="OnScaleSelectionChanged" Content="5" IsChecked="True" Unchecked="OnScaleSelectionChanged" />
                             <CheckBox x:Name="Scale4CheckBox" Checked="OnScaleSelectionChanged" Content="4" IsChecked="True" Unchecked="OnScaleSelectionChanged" />
-                            <CheckBox x:Name="Scale3CheckBox" Checked="OnScaleSelectionChanged" Content="3" Unchecked="OnScaleSelectionChanged" />
+                            <CheckBox x:Name="Scale3CheckBox" Checked="OnScaleSelectionChanged" Content="3" IsChecked="True" Unchecked="OnScaleSelectionChanged" />
                             <CheckBox x:Name="Scale2CheckBox" Checked="OnScaleSelectionChanged" Content="2" Unchecked="OnScaleSelectionChanged" />
                             <CheckBox x:Name="Scale1CheckBox" Checked="OnScaleSelectionChanged" Content="1" Unchecked="OnScaleSelectionChanged" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <NumberBox x:Name="ValidationAverageNumberBox" Header="Media minima" Minimum="0" SmallChange="0.1" SpinButtonPlacementMode="Compact" Value="4" />
-                            <NumberBox x:Name="ValidationProportionNumberBox" Header="Proporcao minima (%)" Minimum="0" SmallChange="1" SpinButtonPlacementMode="Compact" Value="70" />
+                            <NumberBox x:Name="ValidationMedianNumberBox" Header="Mediana mínima" Minimum="1" Maximum="5" SmallChange="1" SpinButtonPlacementMode="Compact" Value="3" />
+                            <NumberBox x:Name="ValidationProportionNumberBox" Header="Concordância mínima (%)" Minimum="0" SmallChange="1" SpinButtonPlacementMode="Compact" Value="70" />
                         </StackPanel>
                         <ListView x:Name="Q1TableListView" HorizontalContentAlignment="Stretch" SelectionMode="None">
                             <ListView.ItemTemplate>
@@ -191,7 +191,7 @@
                                         <TextBlock Grid.Column="4" Text="{x:Bind Value3}" />
                                         <TextBlock Grid.Column="5" Text="{x:Bind Value4}" />
                                         <TextBlock Grid.Column="6" Text="{x:Bind Value5}" />
-                                        <TextBlock Grid.Column="7" Text="{x:Bind Average}" />
+                                        <TextBlock Grid.Column="7" Text="{x:Bind Median}" />
                                         <TextBlock Grid.Column="8" Text="{x:Bind Proportion}" />
                                         <TextBlock Grid.Column="9" Text="{x:Bind Status}" />
                                     </Grid>
@@ -202,29 +202,19 @@
                 </Border>
 
                 <Border Style="{StaticResource CardBorderStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Causas" />
-                        <TextBlock x:Name="CausesStatusTextBlock" Text="Nenhuma causa cadastrada." TextWrapping="WrapWholeWords" />
-                        <ItemsControl x:Name="Q1VinculoGroupsItemsControl">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="local:GroupSelectionOption">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
-                                        <TextBlock Text="{x:Bind GroupName}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <StackPanel Spacing="12">
+                            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Causas possíveis" />
+                            <TextBlock x:Name="CausesStatusTextBlock" Text="Nenhuma causa possível cadastrada." TextWrapping="WrapWholeWords" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnExportQ1TxtClicked" Content="Exportar TXT Q1" />
-                            <Button Click="OnImportCausesCsvClicked" Content="Importar causas.csv" />
+                            <Button Click="OnExportQ1TxtClicked" Content="Gerar questionário de validação" />
+                            <Button Click="OnImportCausesCsvClicked" Content="Importar lista de causas" />
                             <Button Click="OnDownloadCausesTemplateClicked" Content="Baixar modelo" />
-                            <Button Click="OnClearCausesClicked" Content="Limpar causas" />
+                            <Button Click="OnClearCausesClicked" Content="Limpar causas possíveis" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button x:Name="RenameCauseButton" Click="OnRenameCauseClicked" Content="Renomear" IsEnabled="False" />
                             <Button x:Name="DeleteCauseButton" Click="OnDeleteCauseClicked" Content="Excluir" IsEnabled="False" />
-                            <Button Click="OnAddCauseClicked" Content="Adicionar causa" />
+                            <Button Click="OnAddCauseClicked" Content="Adicionar causa possível" />
                         </StackPanel>
                         <ListView
                             x:Name="CausesListView"
@@ -249,13 +239,13 @@
 
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Grupos" />
-                        <TextBlock x:Name="GroupsStatusTextBlock" Text="Nenhum grupo cadastrado." TextWrapping="WrapWholeWords" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Participantes" />
+                        <TextBlock x:Name="GroupsStatusTextBlock" Text="Nenhum grupo participante cadastrado." TextWrapping="WrapWholeWords" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnAddGroupClicked" Content="Adicionar grupo" />
+                            <Button Click="OnAddGroupClicked" Content="Adicionar participante" />
                             <Button x:Name="RenameGroupButton" Click="OnRenameGroupClicked" Content="Renomear" IsEnabled="False" />
                             <Button x:Name="DeleteGroupButton" Click="OnDeleteGroupClicked" Content="Excluir" IsEnabled="False" />
-                            <Button Click="OnClearGroupsClicked" Content="Limpar grupos" />
+                            <Button Click="OnClearGroupsClicked" Content="Limpar participantes" />
                         </StackPanel>
                         <ListView
                             x:Name="GroupsListView"

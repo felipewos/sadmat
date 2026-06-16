@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
@@ -857,7 +858,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				Update_Value3(obj.Value3, phase);
 				Update_Value4(obj.Value4, phase);
 				Update_Value5(obj.Value5, phase);
-				Update_Average(obj.Average, phase);
+				Update_Median(obj.Median, phase);
 				Update_Proportion(obj.Proportion, phase);
 				Update_Status(obj.Status, phase);
 			}
@@ -919,7 +920,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			}
 		}
 
-		private void Update_Average(string obj, int phase)
+		private void Update_Median(string obj, int phase)
 		{
 			if ((phase & -2147483647) != 0)
 			{
@@ -1718,13 +1719,15 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 
 	private ProjectItem? currentProject;
 
-	private bool isUpdatingValidationAverage;
+	private bool isUpdatingValidationMedian;
 
 	private bool isUpdatingValidationProportion;
 
 	private bool isUpdatingAhpConsistency;
 
 	private bool isValidationUiReady;
+
+	private bool isProjectPivotHandlerAttached;
 
 	private double? ahpCrPercent;
 
@@ -1807,7 +1810,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	private NumberBox ValidationProportionNumberBox;
 
 	[GeneratedCode("Microsoft.UI.Xaml.Markup.Compiler", " 3.0.0.2602")]
-	private NumberBox ValidationAverageNumberBox;
+	private NumberBox ValidationMedianNumberBox;
 
 	[GeneratedCode("Microsoft.UI.Xaml.Markup.Compiler", " 3.0.0.2602")]
 	private TextBlock CausesStatusTextBlock;
@@ -1860,17 +1863,33 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	public ProjectDetailsPage()
 	{
 		InitializeComponent();
+		ConfigureValidationNumberBoxes();
+		base.Loaded += delegate
+		{
+			ApplyProjectTabHeadersAfterLayout();
+			ApplyRemovedQ1RespondentGroupsUi();
+		};
+		base.LayoutUpdated += delegate
+		{
+			ApplyRemovedQ1RespondentGroupsUi();
+		};
 		GroupsListView.ItemsSource = groups;
 		CausesListView.ItemsSource = causes;
-		Q1VinculoGroupsItemsControl.ItemsSource = q1VinculoGroupOptions;
+		if ((object)Q1VinculoGroupsItemsControl != null)
+		{
+			Q1VinculoGroupsItemsControl.ItemsSource = q1VinculoGroupOptions;
+		}
 		EnsureAhpUiBindings();
 		Q1TableListView.ItemsSource = q1Rows;
 		Q2TableListView.ItemsSource = q2Rows;
 		ReportsTopTopsisListView.ItemsSource = reportTopTopsisRows;
+		Scale1CheckBox.IsChecked = false;
+		Scale2CheckBox.IsChecked = false;
+		Scale3CheckBox.IsChecked = true;
 		Scale4CheckBox.IsChecked = true;
 		Scale5CheckBox.IsChecked = true;
-		ValidationAverageNumberBox.Text = ValidationAverageNumberBox.Value.ToString("F1", CultureInfo.CurrentCulture);
-		ValidationProportionNumberBox.Text = ValidationProportionNumberBox.Value.ToString("F1", CultureInfo.CurrentCulture);
+		ValidationMedianNumberBox.Text = ValidationMedianNumberBox.Value.ToString("F0", CultureInfo.CurrentCulture);
+		ValidationProportionNumberBox.Text = ValidationProportionNumberBox.Value.ToString("F0", CultureInfo.CurrentCulture);
 		if ((object)AhpConsistencyNumberBox != null)
 		{
 			AhpConsistencyNumberBox.Text = AhpConsistencyNumberBox.Value.ToString("F1", CultureInfo.CurrentCulture);
@@ -1880,6 +1899,228 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		UpdateCauseButtons();
 		UpdateGroupsStatus();
 		UpdateCausesStatus();
+		ApplyRemovedQ1RespondentGroupsUi();
+	}
+
+	private void ApplyRemovedQ1RespondentGroupsUi()
+	{
+		if ((object)Q1VinculoGroupsItemsControl != null)
+		{
+			Q1VinculoGroupsItemsControl.Visibility = Visibility.Collapsed;
+		}
+		HideTextBlockByExactText(PageRootGrid, "Grupos respondentes");
+	}
+
+	private async void ApplyProjectTabHeadersAfterLayout()
+	{
+		await Task.Delay(100);
+		ApplyProjectTabHeaders(PageRootGrid);
+		AttachProjectPivotHandler(PageRootGrid);
+	}
+
+	private void AttachProjectPivotHandler(DependencyObject root)
+	{
+		if (isProjectPivotHandlerAttached || root == null)
+		{
+			return;
+		}
+		if (root is Pivot pivot)
+		{
+			isProjectPivotHandlerAttached = true;
+			pivot.SelectionChanged += delegate
+			{
+				ApplyValidationLabelsAfterTabChange();
+			};
+			return;
+		}
+		int childCount;
+		try
+		{
+			childCount = VisualTreeHelper.GetChildrenCount(root);
+		}
+		catch
+		{
+			return;
+		}
+		for (int i = 0; i < childCount; i++)
+		{
+			AttachProjectPivotHandler(VisualTreeHelper.GetChild(root, i));
+			if (isProjectPivotHandlerAttached)
+			{
+				return;
+			}
+		}
+	}
+
+	private async void ApplyValidationLabelsAfterTabChange()
+	{
+		await Task.Delay(150);
+		ApplyUserFriendlyLabels();
+	}
+
+	private static void ApplyProjectTabHeaders(DependencyObject root)
+	{
+		if (root == null)
+		{
+			return;
+		}
+		if (root is PivotItem pivotItem && pivotItem.Header is string header)
+		{
+			pivotItem.Header = header.Trim() switch
+			{
+				"Dados" => "Projeto",
+				"Grupos" => "Participantes",
+				"Causas" => "Causas possíveis",
+				"Validação" => "Aprovação",
+				"Validacao" => "Aprovação",
+				"AHP" => "Peso dos grupos",
+				"TOPSIS" => "Ranking final",
+				"Relatórios" => "Relatório",
+				"Relatorios" => "Relatório",
+				_ => header
+			};
+		}
+		int childCount;
+		try
+		{
+			childCount = VisualTreeHelper.GetChildrenCount(root);
+		}
+		catch
+		{
+			return;
+		}
+		for (int i = 0; i < childCount; i++)
+		{
+			ApplyProjectTabHeaders(VisualTreeHelper.GetChild(root, i));
+		}
+	}
+
+	private static void HideTextBlockByExactText(DependencyObject root, string text)
+	{
+		if (root == null)
+		{
+			return;
+		}
+		if (root is TextBlock textBlock && string.Equals(textBlock.Text?.Trim(), text, StringComparison.OrdinalIgnoreCase))
+		{
+			textBlock.Visibility = Visibility.Collapsed;
+		}
+		int childCount = VisualTreeHelper.GetChildrenCount(root);
+		for (int i = 0; i < childCount; i++)
+		{
+			HideTextBlockByExactText(VisualTreeHelper.GetChild(root, i), text);
+		}
+	}
+
+	private static Button SetButtonText(object target, string text)
+	{
+		Button button = target.As<Button>();
+		button.Content = text;
+		AutomationProperties.SetName(button, text);
+		return button;
+	}
+
+	private void ConfigureValidationNumberBoxes()
+	{
+		ConfigureIntegerNumberBox(ValidationMedianNumberBox, 1.0, 5.0, 3.0);
+		ConfigureIntegerNumberBox(ValidationProportionNumberBox, 0.0, 100.0);
+	}
+
+	private static void ConfigureIntegerNumberBox(NumberBox numberBox, double minimum, double maximum, double? defaultValue = null)
+	{
+		if ((object)numberBox == null)
+		{
+			return;
+		}
+		numberBox.Minimum = minimum;
+		numberBox.Maximum = maximum;
+		numberBox.SmallChange = 1.0;
+		if (defaultValue.HasValue)
+		{
+			numberBox.Value = defaultValue.Value;
+			numberBox.Text = defaultValue.Value.ToString("F0", CultureInfo.CurrentCulture);
+			return;
+		}
+		if (!double.IsNaN(numberBox.Value))
+		{
+			double roundedValue = RoundValidationInteger(numberBox.Value, minimum, maximum);
+			numberBox.Value = roundedValue;
+			numberBox.Text = roundedValue.ToString("F0", CultureInfo.CurrentCulture);
+		}
+	}
+
+	private static double RoundValidationInteger(double value, double minimum, double maximum)
+	{
+		return Math.Clamp(Math.Round(value, 0, MidpointRounding.AwayFromZero), minimum, maximum);
+	}
+
+	private void ApplyUserFriendlyLabels()
+	{
+		if ((object)ValidationMedianNumberBox != null)
+		{
+			ValidationMedianNumberBox.Header = null;
+		}
+		ReplaceValidationLabelText(PageRootGrid);
+		ReplaceValidationLabelText(Q1TableListView);
+	}
+
+	private async void RefreshUserFriendlyLabelsAfterLayout()
+	{
+		ApplyUserFriendlyLabels();
+		base.DispatcherQueue.TryEnqueue(ApplyUserFriendlyLabels);
+		await Task.Delay(50);
+		ApplyUserFriendlyLabels();
+		await Task.Delay(250);
+		ApplyUserFriendlyLabels();
+	}
+
+	private static void ReplaceValidationLabelText(DependencyObject root)
+	{
+		if (root == null)
+		{
+			return;
+		}
+		if (root is TextBlock textBlock)
+		{
+			textBlock.Text = ReplaceValidationLabelText(textBlock.Text);
+		}
+		int childCount;
+		try
+		{
+			childCount = VisualTreeHelper.GetChildrenCount(root);
+		}
+		catch
+		{
+			return;
+		}
+		for (int i = 0; i < childCount; i++)
+		{
+			ReplaceValidationLabelText(VisualTreeHelper.GetChild(root, i));
+		}
+	}
+
+	private static string ReplaceValidationLabelText(string text)
+	{
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return text;
+		}
+		return text.Trim() switch
+		{
+			"Média" => "Mediana",
+			"Media" => "Mediana",
+			"Média mínima" => "Mediana mínima",
+			"Media minima" => "Mediana mínima",
+			"Proporção" => "Concordância",
+			"Proporcao" => "Concordância",
+			"Proporção (%)" => "Concordância mínima (%)",
+			"Proporcao (%)" => "Concordância mínima (%)",
+			"Escala" => "Notas positivas",
+			"Status" => "Resultado",
+			"Id" => "Código",
+			"Causa" => "Causa possível",
+			_ => text
+		};
 	}
 
 	protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -1913,7 +2154,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			currentProject = project;
 			string projectDisplayName = BuildProjectDisplayName(project);
-			PageTitleTextBlock.Text = "Visão Geral do Projeto: " + projectDisplayName;
+			PageTitleTextBlock.Text = "Projeto: " + projectDisplayName;
 			ProjectNameTextBlock.Text = projectDisplayName;
 			ProjectFolderTextBlock.Text = project.FolderPath;
 			ProjectCreatedTextBlock.Text = project.CreatedAtText;
@@ -1949,7 +2190,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		int approvedCauses = q1Rows.Count((Q1TableRow q1TableRow) => string.Equals(q1TableRow.Status, "Aprovada", StringComparison.OrdinalIgnoreCase));
 		int totalCauses = q1Rows.Count;
-		ReportsRespondentsValueTextBlock.Text = $"Q1: {q1ResponseCount} | Q2: {q2ResponseCount}";
+		ReportsRespondentsValueTextBlock.Text = $"Validação: {q1ResponseCount} | Final: {q2ResponseCount}";
 		ReportsApprovedCausesValueTextBlock.Text = ((totalCauses > 0) ? $"{approvedCauses}/{totalCauses}" : "-");
 		if (ahpCrPercent.HasValue)
 		{
@@ -1968,11 +2209,11 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			reportTopTopsisRows.Add(new TopsisTableRow(row.Id, row.Cause, row.Rank));
 		}
-		ReportsTopTopsisStatusTextBlock.Text = ((reportTopTopsisRows.Count > 0) ? $"Top {reportTopTopsisRows.Count} causas pelo ranking TOPSIS." : "Importe q2.csv para exibir o ranking TOPSIS.");
+		ReportsTopTopsisStatusTextBlock.Text = ((reportTopTopsisRows.Count > 0) ? $"Top {reportTopTopsisRows.Count} causas no ranking final." : "Importe as respostas finais para exibir o ranking.");
 		string q1Import = BuildFileImportLabel("q1.csv");
 		string q2Import = BuildFileImportLabel("q2.csv");
 		string causesImport = BuildFileImportLabel("causas.csv");
-		ReportsTextBlock.Text = $"Últimas importações: {q1Import} | {q2Import} | {causesImport}.";
+		ReportsTextBlock.Text = $"Últimas importações: validação ({q1Import}) | final ({q2Import}) | causas ({causesImport}).";
 	}
 
 	private static int TryParseRank(string rank)
@@ -2023,13 +2264,13 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		stringBuilder = builder;
 		StringBuilder stringBuilder3 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(17, 1, stringBuilder);
-		handler.AppendLiteral("Respondentes Q1: ");
+		handler.AppendLiteral("Respondentes da validação: ");
 		handler.AppendFormatted(q1ResponseCount);
 		stringBuilder3.AppendLine(ref handler);
 		stringBuilder = builder;
 		StringBuilder stringBuilder4 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(17, 1, stringBuilder);
-		handler.AppendLiteral("Respondentes Q2: ");
+		handler.AppendLiteral("Respondentes finais: ");
 		handler.AppendFormatted(q2ResponseCount);
 		stringBuilder4.AppendLine(ref handler);
 		stringBuilder = builder;
@@ -2043,10 +2284,10 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		stringBuilder = builder;
 		StringBuilder stringBuilder6 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(15, 1, stringBuilder);
-		handler.AppendLiteral("CR global AHP: ");
+		handler.AppendLiteral("Consistência das comparações: ");
 		handler.AppendFormatted(ahpCrSummary);
 		stringBuilder6.AppendLine(ref handler);
-		builder.AppendLine("Top 5 TOPSIS:");
+		builder.AppendLine("Top 5 do ranking final:");
 		foreach (TopsisTableRow row in q2Rows.OrderBy((TopsisTableRow item) => TryParseRank(item.Rank)).Take(5))
 		{
 			stringBuilder = builder;
@@ -2073,13 +2314,13 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		StringBuilder stringBuilder = builder;
 		StringBuilder stringBuilder2 = stringBuilder;
 		StringBuilder.AppendInterpolatedStringHandler handler = new StringBuilder.AppendInterpolatedStringHandler(23, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;Respondentes_Q1;");
+		handler.AppendLiteral("Resumo;Respondentes_Validacao;");
 		handler.AppendFormatted(q1ResponseCount.ToString(CultureInfo.InvariantCulture));
 		stringBuilder2.AppendLine(ref handler);
 		stringBuilder = builder;
 		StringBuilder stringBuilder3 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(23, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;Respondentes_Q2;");
+		handler.AppendLiteral("Resumo;Respondentes_Final;");
 		handler.AppendFormatted(q2ResponseCount.ToString(CultureInfo.InvariantCulture));
 		stringBuilder3.AppendLine(ref handler);
 		stringBuilder = builder;
@@ -2097,25 +2338,25 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		stringBuilder = builder;
 		StringBuilder stringBuilder6 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(21, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;CR_Global_AHP;");
+		handler.AppendLiteral("Resumo;Consistencia_Comparacoes;");
 		handler.AppendFormatted(EscapeCsvValue(ahpCrValue));
 		stringBuilder6.AppendLine(ref handler);
 		stringBuilder = builder;
 		StringBuilder stringBuilder7 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(21, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;Limite_CR_AHP;");
+		handler.AppendLiteral("Resumo;Limite_Inconsistencia;");
 		handler.AppendFormatted(EscapeCsvValue(consistencyLimit.ToString("F1", CultureInfo.CurrentCulture)));
 		stringBuilder7.AppendLine(ref handler);
 		stringBuilder = builder;
 		StringBuilder stringBuilder8 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(21, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;Importacao_q1;");
+		handler.AppendLiteral("Resumo;Importacao_Validacao;");
 		handler.AppendFormatted(EscapeCsvValue(BuildFileImportLabel("q1.csv")));
 		stringBuilder8.AppendLine(ref handler);
 		stringBuilder = builder;
 		StringBuilder stringBuilder9 = stringBuilder;
 		handler = new StringBuilder.AppendInterpolatedStringHandler(21, 1, stringBuilder);
-		handler.AppendLiteral("Resumo;Importacao_q2;");
+		handler.AppendLiteral("Resumo;Importacao_Final;");
 		handler.AppendFormatted(EscapeCsvValue(BuildFileImportLabel("q2.csv")));
 		stringBuilder9.AppendLine(ref handler);
 		stringBuilder = builder;
@@ -2129,7 +2370,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			stringBuilder = builder;
 			StringBuilder stringBuilder11 = stringBuilder;
 			handler = new StringBuilder.AppendInterpolatedStringHandler(8, 2, stringBuilder);
-			handler.AppendLiteral("TOPSIS;");
+			handler.AppendLiteral("Ranking_Final;");
 			handler.AppendFormatted(EscapeCsvValue(row.Rank));
 			handler.AppendLiteral(";");
 			handler.AppendFormatted(EscapeCsvValue(row.Id + " - " + row.Cause));
@@ -2169,12 +2410,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		TextBox groupNameTextBox = new TextBox
 		{
-			PlaceholderText = "Nome do grupo",
+			PlaceholderText = "Nome do grupo participante",
 			MinWidth = 320.0
 		};
 		if (await new ContentDialog
 		{
-			Title = "Adicionar grupo",
+			Title = "Adicionar grupo participante",
 			Content = groupNameTextBox,
 			PrimaryButtonText = "Adicionar",
 			CloseButtonText = "Cancelar",
@@ -2189,7 +2430,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			if (groups.Any((NamedListItem existingItem) => string.Equals(existingItem.Name, groupName, StringComparison.OrdinalIgnoreCase)))
 			{
-				await ShowMessageAsync("Grupo existente", "Já existe um grupo com esse nome.");
+				await ShowMessageAsync("Grupo existente", "Já existe um grupo participante com esse nome.");
 				return;
 			}
 			NamedListItem newItem = new NamedListItem(groupName, "G");
@@ -2200,8 +2441,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			GroupsListView.UpdateLayout();
 			SaveGroups();
 			UpdateGroupButtons();
-			UpdateGroupsStatus("Grupo adicionado.");
-			RebuildAhpTableRows("Grupo adicionado.");
+			UpdateGroupsStatus("Grupo participante adicionado.");
+			RebuildAhpTableRows("Grupo participante adicionado.");
 			LoadQ2TableForCurrentProject();
 		}
 	}
@@ -2221,12 +2462,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		TextBox groupNameTextBox = new TextBox
 		{
 			Text = selectedGroup.Name,
-			PlaceholderText = "Novo nome do grupo",
+			PlaceholderText = "Novo nome do grupo participante",
 			MinWidth = 320.0
 		};
 		if (await new ContentDialog
 		{
-			Title = "Renomear grupo",
+			Title = "Editar grupo participante",
 			Content = groupNameTextBox,
 			PrimaryButtonText = "Salvar",
 			CloseButtonText = "Cancelar",
@@ -2241,7 +2482,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			if (groups.Any((NamedListItem existingItem) => existingItem != selectedGroup && string.Equals(existingItem.Name, newGroupName, StringComparison.OrdinalIgnoreCase)))
 			{
-				await ShowMessageAsync("Grupo existente", "Já existe um grupo com esse nome.");
+				await ShowMessageAsync("Grupo existente", "Já existe um grupo participante com esse nome.");
 				return;
 			}
 			selectedGroup.Name = newGroupName;
@@ -2249,8 +2490,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			GroupsListView.UpdateLayout();
 			SaveGroups();
 			UpdateGroupButtons();
-			UpdateGroupsStatus("Grupo renomeado.");
-			RebuildAhpTableRows("Grupo renomeado.");
+			UpdateGroupsStatus("Grupo participante renomeado.");
+			RebuildAhpTableRows("Grupo participante renomeado.");
 			LoadQ2TableForCurrentProject();
 		}
 	}
@@ -2263,7 +2504,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			if (selectedItem is NamedListItem selectedGroup && await new ContentDialog
 			{
 				Title = "Confirmar exclusão",
-				Content = "Deseja realmente excluir o grupo \"" + selectedGroup.Name + "\"?",
+				Content = "Deseja realmente excluir o grupo participante \"" + selectedGroup.Name + "\"?",
 				PrimaryButtonText = "Excluir",
 				CloseButtonText = "Cancelar",
 				DefaultButton = ContentDialogButton.Close,
@@ -2276,8 +2517,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				GroupsListView.UpdateLayout();
 				SaveGroups();
 				UpdateGroupButtons();
-				UpdateGroupsStatus("Grupo excluído.");
-				RebuildAhpTableRows("Grupo excluído.");
+				UpdateGroupsStatus("Grupo participante excluído.");
+				RebuildAhpTableRows("Grupo participante excluído.");
 				LoadQ2TableForCurrentProject();
 			}
 		}
@@ -2288,7 +2529,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		if (currentProject != null && groups.Count != 0 && await new ContentDialog
 		{
 			Title = "Confirmar limpeza",
-			Content = $"Deseja realmente limpar a tabela de grupos ({groups.Count})?",
+			Content = $"Deseja realmente limpar os grupos participantes ({groups.Count})?",
 			PrimaryButtonText = "Limpar",
 			CloseButtonText = "Cancelar",
 			DefaultButton = ContentDialogButton.Close,
@@ -2301,8 +2542,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			ClearAhpComputedData();
 			SaveGroups();
 			UpdateGroupButtons();
-			UpdateGroupsStatus("Tabela de grupos limpa.");
-			RebuildAhpTableRows("Tabela de grupos limpa.");
+			UpdateGroupsStatus("Grupos participantes limpos.");
+			RebuildAhpTableRows("Grupos participantes limpos.");
 			LoadQ2TableForCurrentProject();
 		}
 	}
@@ -2336,18 +2577,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 
 	private void RebuildQ1VinculoGroupOptions()
 	{
-		Dictionary<string, bool> previousSelectionById = q1VinculoGroupOptions.ToDictionary<GroupSelectionOption, string, bool>((GroupSelectionOption option) => option.GroupId, (GroupSelectionOption option) => option.IsSelected, StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, bool> previousSelectionByName = q1VinculoGroupOptions.ToDictionary<GroupSelectionOption, string, bool>((GroupSelectionOption option) => NormalizeComparisonValue(option.GroupName), (GroupSelectionOption option) => option.IsSelected, StringComparer.OrdinalIgnoreCase);
 		q1VinculoGroupOptions.Clear();
-		foreach (NamedListItem group in groups)
-		{
-			string normalizedName = NormalizeComparisonValue(group.Name);
-			bool selectedByName;
-			bool selectedById;
-			bool isSelected = (previousSelectionByName.TryGetValue(normalizedName, out selectedByName) ? selectedByName : (!previousSelectionById.TryGetValue(group.ItemId, out selectedById) || selectedById));
-			q1VinculoGroupOptions.Add(new GroupSelectionOption(group.ItemId, group.Name, isSelected));
-		}
-		Q1VinculoGroupsItemsControl.UpdateLayout();
+		ApplyRemovedQ1RespondentGroupsUi();
 	}
 
 	private void SaveGroups()
@@ -2431,12 +2662,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		TextBox causeNameTextBox = new TextBox
 		{
-			PlaceholderText = "Nome da causa",
+			PlaceholderText = "Nome da causa possível",
 			MinWidth = 320.0
 		};
 		if (await new ContentDialog
 		{
-			Title = "Adicionar causa",
+			Title = "Adicionar causa possível",
 			Content = causeNameTextBox,
 			PrimaryButtonText = "Adicionar",
 			CloseButtonText = "Cancelar",
@@ -2451,7 +2682,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			if (causes.Any((NamedListItem existingItem) => string.Equals(existingItem.Name, causeName, StringComparison.OrdinalIgnoreCase)))
 			{
-				await ShowMessageAsync("Causa existente", "Já existe uma causa com esse nome.");
+				await ShowMessageAsync("Causa existente", "Já existe uma causa possível com esse nome.");
 				return;
 			}
 			NamedListItem newItem = new NamedListItem(causeName, "C");
@@ -2460,7 +2691,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			CausesListView.SelectedItem = newItem;
 			SaveCauses();
 			UpdateCauseButtons();
-			UpdateCausesStatus("Causa adicionada.");
+			UpdateCausesStatus("Causa possível adicionada.");
 		}
 	}
 
@@ -2479,12 +2710,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		TextBox causeNameTextBox = new TextBox
 		{
 			Text = selectedCause.Name,
-			PlaceholderText = "Novo nome da causa",
+			PlaceholderText = "Novo nome da causa possível",
 			MinWidth = 320.0
 		};
 		if (await new ContentDialog
 		{
-			Title = "Renomear causa",
+			Title = "Editar causa possível",
 			Content = causeNameTextBox,
 			PrimaryButtonText = "Salvar",
 			CloseButtonText = "Cancelar",
@@ -2499,13 +2730,13 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			if (causes.Any((NamedListItem existingItem) => existingItem != selectedCause && string.Equals(existingItem.Name, newCauseName, StringComparison.OrdinalIgnoreCase)))
 			{
-				await ShowMessageAsync("Causa existente", "Já existe uma causa com esse nome.");
+				await ShowMessageAsync("Causa existente", "Já existe uma causa possível com esse nome.");
 				return;
 			}
 			selectedCause.Name = newCauseName;
 			SaveCauses();
 			UpdateCauseButtons();
-			UpdateCausesStatus("Causa renomeada.");
+			UpdateCausesStatus("Causa possível renomeada.");
 		}
 	}
 
@@ -2517,7 +2748,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			if (selectedItem is NamedListItem selectedCause && await new ContentDialog
 			{
 				Title = "Confirmar exclusão",
-				Content = "Deseja realmente excluir a causa \"" + selectedCause.Name + "\"?",
+				Content = "Deseja realmente excluir a causa possível \"" + selectedCause.Name + "\"?",
 				PrimaryButtonText = "Excluir",
 				CloseButtonText = "Cancelar",
 				DefaultButton = ContentDialogButton.Close,
@@ -2528,7 +2759,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				RenumberItems(causes);
 				SaveCauses();
 				UpdateCauseButtons();
-				UpdateCausesStatus("Causa excluída.");
+				UpdateCausesStatus("Causa possível excluída.");
 			}
 		}
 	}
@@ -2539,12 +2770,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			if (causes.Count == 0)
 			{
-				UpdateCausesStatus("Tabela de causas limpa.");
+				UpdateCausesStatus("Causas possíveis limpas.");
 			}
 			else if (await new ContentDialog
 			{
 				Title = "Confirmar limpeza",
-				Content = $"Deseja realmente limpar a tabela de causas ({causes.Count})?",
+				Content = $"Deseja realmente limpar as causas possíveis ({causes.Count})?",
 				PrimaryButtonText = "Limpar",
 				CloseButtonText = "Cancelar",
 				DefaultButton = ContentDialogButton.Close,
@@ -2554,7 +2785,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				causes.Clear();
 				SaveCauses();
 				UpdateCauseButtons();
-				UpdateCausesStatus("Tabela de causas limpa.");
+				UpdateCausesStatus("Causas possíveis limpas.");
 			}
 		}
 	}
@@ -2709,7 +2940,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		};
 		Button exportTemplateButton = new Button
 		{
-			Content = "Exportar template causas.csv",
+			Content = "Baixar modelo de causas",
 			HorizontalAlignment = HorizontalAlignment.Left
 		};
 		exportTemplateButton.Click += async delegate
@@ -2717,17 +2948,17 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			string csvSavePath = await PickCsvSavePathAsync();
 			if (string.IsNullOrWhiteSpace(csvSavePath))
 			{
-				exportStatusText.Text = "Exportação de template cancelada.";
+				exportStatusText.Text = "Download do modelo cancelado.";
 				return;
 			}
 			try
 			{
 				ProjectCausesRepository.ExportTemplateCsvToFile(csvSavePath, overwriteExisting: true);
-				exportStatusText.Text = "Template exportado em: " + csvSavePath;
+				exportStatusText.Text = "Modelo salvo em: " + csvSavePath;
 			}
 			catch (Exception ex)
 			{
-				exportStatusText.Text = "Erro ao exportar template: " + ex.Message;
+				exportStatusText.Text = "Erro ao salvar modelo: " + ex.Message;
 			}
 		};
 		StackPanel contentPanel = new StackPanel
@@ -2741,7 +2972,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		contentPanel.Children.Add(exportStatusText);
 		dialog = new ContentDialog
 		{
-			Title = "Importar causas.csv",
+			Title = "Importar lista de causas",
 			Content = contentPanel,
 			PrimaryButtonText = "Importar",
 			CloseButtonText = "Cancelar",
@@ -2813,7 +3044,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		q1ResponseCount = 0;
 		if (!File.Exists(csvPath))
 		{
-			TeamAssignmentsTextBlock.Text = "Importe q1.csv para visualizar a tabela.";
+			TeamAssignmentsTextBlock.Text = "Importe as respostas de validação para aprovar as causas.";
 			ClearAhpComputedData();
 			RebuildAhpTableRows();
 			RefreshReportsSection();
@@ -2828,15 +3059,15 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			RebuildQ1TableRows();
 			LoadAhpTableFromFile(csvPath);
 			RebuildQ2TableRows();
-			TeamAssignmentsTextBlock.Text = ((parsedRows.Count > 0) ? $"q1.csv carregado com {parsedRows.Count} linhas." : "q1.csv importado, mas sem linhas válidas.");
+			TeamAssignmentsTextBlock.Text = ((parsedRows.Count > 0) ? $"Respostas de validação carregadas com {parsedRows.Count} causas." : "Respostas de validação importadas, mas sem linhas válidas.");
 			RefreshReportsSection();
 		}
 		catch (Exception ex)
 		{
-			TeamAssignmentsTextBlock.Text = "Erro ao ler q1.csv: " + ex.Message;
+			TeamAssignmentsTextBlock.Text = "Erro ao ler as respostas de validação: " + ex.Message;
 			q1ResponseCount = 0;
 			ClearAhpComputedData();
-			RebuildAhpTableRows("Erro ao ler dados AHP do q1.csv.");
+			RebuildAhpTableRows("Erro ao calcular os pesos dos grupos a partir das respostas de validação.");
 			RebuildQ2TableRows();
 			RefreshReportsSection();
 		}
@@ -2849,15 +3080,16 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			return;
 		}
 		q1Rows.Clear();
-		double threshold = (double.IsNaN(ValidationAverageNumberBox.Value) ? 0.0 : ValidationAverageNumberBox.Value);
+		double medianThreshold = (double.IsNaN(ValidationMedianNumberBox.Value) ? 0.0 : ValidationMedianNumberBox.Value);
+		double proportionThreshold = (double.IsNaN(ValidationProportionNumberBox.Value) ? 0.0 : ValidationProportionNumberBox.Value);
 		ISet<int> selectedScaleValues = GetSelectedScaleValues();
 		foreach (Q1ParsedRow row in q1ParsedRows)
 		{
-			(double Average, double Proportion) tuple = BuildQ1Metrics(row.Count1, row.Count2, row.Count3, row.Count4, row.Count5, selectedScaleValues);
-			double average = tuple.Average;
+			(double Median, double Proportion) tuple = BuildQ1Metrics(row.Count1, row.Count2, row.Count3, row.Count4, row.Count5, selectedScaleValues);
+			double median = tuple.Median;
 			double proportion = tuple.Proportion;
-			string status = ((average >= threshold) ? "Aprovada" : "Reprovada");
-			q1Rows.Add(new Q1TableRow(row.Number, row.Cause, row.Value1, row.Value2, row.Value3, row.Value4, row.Value5, average.ToString("F1", CultureInfo.CurrentCulture), proportion.ToString("F1", CultureInfo.CurrentCulture) + "%", status));
+			string status = ((median >= medianThreshold && proportion >= proportionThreshold) ? "Aprovada" : "Reprovada");
+			q1Rows.Add(new Q1TableRow(row.Number, row.Cause, row.Value1, row.Value2, row.Value3, row.Value4, row.Value5, median.ToString("F1", CultureInfo.CurrentCulture), proportion.ToString("F1", CultureInfo.CurrentCulture) + "%", status));
 		}
 		RefreshReportsSection();
 	}
@@ -2885,7 +3117,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		q2ResponseCount = 0;
 		if (!File.Exists(csvPath))
 		{
-			TopsisStatusTextBlock.Text = "Importe q2.csv para visualizar a tabela.";
+			TopsisStatusTextBlock.Text = "Importe as respostas finais para montar o ranking.";
 			RefreshReportsSection();
 			return;
 		}
@@ -2899,7 +3131,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		catch (Exception ex)
 		{
-			TopsisStatusTextBlock.Text = "Erro ao ler q2.csv: " + ex.Message;
+			TopsisStatusTextBlock.Text = "Erro ao ler as respostas finais: " + ex.Message;
 			RefreshReportsSection();
 		}
 	}
@@ -2913,13 +3145,13 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		q2Rows.Clear();
 		if (q2Alternatives.Count == 0)
 		{
-			TopsisStatusTextBlock.Text = "q2.csv importado, mas sem linhas válidas.";
+			TopsisStatusTextBlock.Text = "Respostas finais importadas, mas sem linhas válidas.";
 			RefreshReportsSection();
 			return;
 		}
 		if (groups.Count == 0)
 		{
-			TopsisStatusTextBlock.Text = "Cadastre grupos na sub-aba Grupos para calcular TOPSIS.";
+			TopsisStatusTextBlock.Text = "Cadastre grupos participantes antes de calcular o ranking final.";
 			RefreshReportsSection();
 			return;
 		}
@@ -2934,7 +3166,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		if (!TryBuildTopsisCriteriaWeights(criteriaCount, out double[] weights))
 		{
-			TopsisStatusTextBlock.Text = $"q2.csv carregado com {q2ResponseCount} respostas e {q2Alternatives.Count} causas, mas sem pesos AHP. " + "Importe q1.csv na sub-aba Validação para calcular os pesos da sub-aba AHP.";
+			TopsisStatusTextBlock.Text = $"Respostas finais carregadas com {q2ResponseCount} respostas e {q2Alternatives.Count} causas, mas ainda faltam os pesos dos grupos. " + "Importe as respostas de validação para calcular os pesos.";
 			RefreshReportsSection();
 			return;
 		}
@@ -3003,7 +3235,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			(TopsisAlternativeData, double) ranked = rankedRows[i2];
 			q2Rows.Add(new TopsisTableRow(ranked.Item1.Id, ranked.Item1.Cause, (i2 + 1).ToString(CultureInfo.InvariantCulture)));
 		}
-		TopsisStatusTextBlock.Text = $"Ranking TOPSIS calculado com pesos AHP ({q2Alternatives.Count} causas).";
+		TopsisStatusTextBlock.Text = $"Ranking final calculado com os pesos dos grupos ({q2Alternatives.Count} causas).";
 		RefreshReportsSection();
 	}
 
@@ -3054,7 +3286,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		List<string> groupIds = groups.Select((NamedListItem group) => group.ItemId.Trim()).ToList();
 		if (!TryParseAhpFromFormsCsv(csvPath, groupNames, groupIds, out AhpComputationResult result) || result == null)
 		{
-			RebuildAhpTableRows("q1.csv sem respostas AHP válidas.");
+			RebuildAhpTableRows("Respostas de validação sem comparações válidas para calcular os pesos.");
 			return;
 		}
 		for (int i = 0; i < groups.Count; i++)
@@ -3063,7 +3295,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		ahpCrPercent = result.CrPercent;
 		ahpResponseCount = result.ResponseCount;
-		RebuildAhpTableRows($"AHP calculado com {result.ResponseCount} respostas.");
+		RebuildAhpTableRows($"Pesos dos grupos calculados com {result.ResponseCount} respostas.");
 	}
 
 	private void ClearAhpComputedData()
@@ -3977,14 +4209,14 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		return value.ToString("F1", CultureInfo.CurrentCulture);
 	}
 
-	private static (double Average, double Proportion) BuildQ1Metrics(double v1, double v2, double v3, double v4, double v5, ISet<int> selectedScaleValues)
+	private static (double Median, double Proportion) BuildQ1Metrics(double v1, double v2, double v3, double v4, double v5, ISet<int> selectedScaleValues)
 	{
 		double total = v1 + v2 + v3 + v4 + v5;
 		if (total <= 0.0)
 		{
-			return (Average: 0.0, Proportion: 0.0);
+			return (Median: 0.0, Proportion: 0.0);
 		}
-		double item = (1.0 * v1 + 2.0 * v2 + 3.0 * v3 + 4.0 * v4 + 5.0 * v5) / total;
+		double[] counts = new double[5] { v1, v2, v3, v4, v5 };
 		double selectedTotal = 0.0;
 		if (selectedScaleValues.Contains(1))
 		{
@@ -4006,8 +4238,40 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		{
 			selectedTotal += v5;
 		}
+		double median = ComputeWeightedLikertMedian(counts, total);
 		double proportion = selectedTotal / total * 100.0;
-		return (Average: item, Proportion: proportion);
+		return (Median: median, Proportion: proportion);
+	}
+
+	private static double ComputeWeightedLikertMedian(IReadOnlyList<double> counts, double total)
+	{
+		double roundedTotal = Math.Round(total, MidpointRounding.AwayFromZero);
+		if (Math.Abs(total - roundedTotal) < 0.0001)
+		{
+			int observationCount = Math.Max(1, (int)roundedTotal);
+			double lower = FindLikertValueAtPosition(counts, (observationCount + 1) / 2.0);
+			if (observationCount % 2 == 1)
+			{
+				return lower;
+			}
+			double upper = FindLikertValueAtPosition(counts, observationCount / 2.0 + 1.0);
+			return (lower + upper) / 2.0;
+		}
+		return FindLikertValueAtPosition(counts, total / 2.0);
+	}
+
+	private static double FindLikertValueAtPosition(IReadOnlyList<double> counts, double position)
+	{
+		double cumulative = 0.0;
+		for (int i = 0; i < counts.Count; i++)
+		{
+			cumulative += counts[i];
+			if (position <= cumulative)
+			{
+				return i + 1;
+			}
+		}
+		return counts.Count;
 	}
 
 	private static double ParseNumeric(string value)
@@ -4292,7 +4556,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		if (!string.Equals(Path.GetFileName(sourceCsvPath), "q1.csv", StringComparison.OrdinalIgnoreCase))
 		{
-			await ShowMessageAsync("Arquivo inválido", "Selecione um arquivo chamado q1.csv.");
+			await ShowMessageAsync("Arquivo inválido", "Selecione o arquivo q1.csv exportado do questionário de validação.");
 			return;
 		}
 		string destinationCsvPath = Path.Combine(currentProject.FolderPath, "q1.csv");
@@ -4302,11 +4566,11 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			File.Copy(sourceCsvPath, destinationCsvPath, overwrite: true);
 			LoadQ1TableFromFile(destinationCsvPath);
 			MarkProjectAsModified();
-			await ShowMessageAsync("Importação concluída", "Arquivo importado para:\n" + destinationCsvPath);
+			await ShowMessageAsync("Importação concluída", "Respostas de validação importadas para:\n" + destinationCsvPath);
 		}
 		catch (Exception ex)
 		{
-			await ShowMessageAsync("Erro ao importar", "Não foi possível importar q1.csv.\n\n" + ex.Message);
+			await ShowMessageAsync("Erro ao importar", "Não foi possível importar as respostas de validação.\n\n" + ex.Message);
 		}
 	}
 
@@ -4314,7 +4578,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		if (currentProject != null)
 		{
-			string contentText = ((q1Rows.Count > 0) ? $"Deseja realmente limpar a tabela de validação ({q1Rows.Count} linhas)?" : "Deseja realmente limpar a tabela de validação?");
+			string contentText = ((q1Rows.Count > 0) ? $"Deseja realmente limpar a aprovação das causas ({q1Rows.Count} linhas)?" : "Deseja realmente limpar a aprovação das causas?");
 			if (await new ContentDialog
 			{
 				Title = "Confirmar limpeza",
@@ -4328,40 +4592,40 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				q1Rows.Clear();
 				q1ParsedRows.Clear();
 				q1ResponseCount = 0;
-				TeamAssignmentsTextBlock.Text = "Tabela de validação limpa.";
+				TeamAssignmentsTextBlock.Text = "Aprovação das causas limpa.";
 				ClearAhpComputedData();
-				RebuildAhpTableRows("Tabela AHP limpa.");
+				RebuildAhpTableRows("Pesos dos grupos limpos.");
 				RebuildQ2TableRows();
 			}
 		}
 	}
 
-	private void OnValidationAverageValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+	private void OnValidationMedianValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
 	{
-		if (isValidationUiReady && !isUpdatingValidationAverage && !double.IsNaN(sender.Value))
+		if (isValidationUiReady && !isUpdatingValidationMedian && !double.IsNaN(sender.Value))
 		{
-			double roundedValue = Math.Clamp(Math.Round(sender.Value, 1, MidpointRounding.AwayFromZero), 0.0, 10.0);
+			double roundedValue = RoundValidationInteger(sender.Value, 1.0, 5.0);
 			if (sender.Value.Equals(roundedValue))
 			{
 				RebuildQ1TableRows();
 				return;
 			}
-			isUpdatingValidationAverage = true;
+			isUpdatingValidationMedian = true;
 			sender.Value = roundedValue;
-			isUpdatingValidationAverage = false;
+			isUpdatingValidationMedian = false;
 			RebuildQ1TableRows();
 		}
 	}
 
-	private void OnValidationAverageLostFocus(object sender, RoutedEventArgs e)
+	private void OnValidationMedianLostFocus(object sender, RoutedEventArgs e)
 	{
 		if (isValidationUiReady && sender is NumberBox numberBox && !double.IsNaN(numberBox.Value))
 		{
-			double roundedValue = Math.Clamp(Math.Round(numberBox.Value, 1, MidpointRounding.AwayFromZero), 0.0, 10.0);
-			isUpdatingValidationAverage = true;
+			double roundedValue = RoundValidationInteger(numberBox.Value, 1.0, 5.0);
+			isUpdatingValidationMedian = true;
 			numberBox.Value = roundedValue;
-			numberBox.Text = roundedValue.ToString("F1", CultureInfo.CurrentCulture);
-			isUpdatingValidationAverage = false;
+			numberBox.Text = roundedValue.ToString("F0", CultureInfo.CurrentCulture);
+			isUpdatingValidationMedian = false;
 			RebuildQ1TableRows();
 		}
 	}
@@ -4370,13 +4634,14 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		if (!isUpdatingValidationProportion && !double.IsNaN(sender.Value))
 		{
-			double roundedValue = Math.Clamp(Math.Round(sender.Value, 1, MidpointRounding.AwayFromZero), 0.0, 100.0);
+			double roundedValue = RoundValidationInteger(sender.Value, 0.0, 100.0);
 			if (!sender.Value.Equals(roundedValue))
 			{
 				isUpdatingValidationProportion = true;
 				sender.Value = roundedValue;
 				isUpdatingValidationProportion = false;
 			}
+			RebuildQ1TableRows();
 		}
 	}
 
@@ -4384,11 +4649,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		if (sender is NumberBox numberBox && !double.IsNaN(numberBox.Value))
 		{
-			double roundedValue = Math.Clamp(Math.Round(numberBox.Value, 1, MidpointRounding.AwayFromZero), 0.0, 100.0);
+			double roundedValue = RoundValidationInteger(numberBox.Value, 0.0, 100.0);
 			isUpdatingValidationProportion = true;
 			numberBox.Value = roundedValue;
-			numberBox.Text = roundedValue.ToString("F1", CultureInfo.CurrentCulture);
+			numberBox.Text = roundedValue.ToString("F0", CultureInfo.CurrentCulture);
 			isUpdatingValidationProportion = false;
+			RebuildQ1TableRows();
 		}
 	}
 
@@ -4459,19 +4725,9 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		List<NamedListItem> groupItems = groups.Where((NamedListItem item) => !string.IsNullOrWhiteSpace(item.ItemId) && !string.IsNullOrWhiteSpace(item.Name)).ToList();
 		List<string> groupNames = groupItems.Select((NamedListItem item) => item.Name.Trim()).ToList();
 		List<string> groupIds = groupItems.Select((NamedListItem item) => item.ItemId.Trim()).ToList();
-		List<string> selectedVinculoGroupIds = (from option in q1VinculoGroupOptions
-			where option.IsSelected
-			select option.GroupId into groupId
-			where !string.IsNullOrWhiteSpace(groupId)
-			select groupId).ToList();
 		if (groupNames.Count < 2)
 		{
-			await ShowMessageAsync("Grupos insuficientes", "Cadastre ao menos dois grupos na sub-aba Grupos antes de exportar q1.txt.");
-			return;
-		}
-		if (selectedVinculoGroupIds.Count == 0)
-		{
-			await ShowMessageAsync("Seleção de vínculo vazia", "Selecione ao menos um grupo nos checkboxes da sub-aba Causas para a pergunta de vínculo do q1.txt.");
+			await ShowMessageAsync("Participantes insuficientes", "Cadastre ao menos dois grupos participantes antes de gerar o questionário de validação.");
 			return;
 		}
 		List<string> causeRows = (from item in causes
@@ -4479,7 +4735,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			select item.ItemId + ". " + item.Name.Trim()).ToList();
 		if (causeRows.Count < 2)
 		{
-			await ShowMessageAsync("Causas insuficientes", "Cadastre ao menos duas causas na sub-aba Causas antes de exportar q1.txt.");
+			await ShowMessageAsync("Causas insuficientes", "Cadastre ao menos duas causas possíveis antes de gerar o questionário de validação.");
 			return;
 		}
 		if ((object)App.MainWindowInstance == null)
@@ -4507,13 +4763,13 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				string institution = (currentProject.Name ?? string.Empty).Trim();
 				string course = (currentProject.Course ?? string.Empty).Trim();
 				string description = BuildQ1FormDescription(institution, course);
-				string content = BuildFormsAppsScript(groupNames, groupIds, causeRows, institution, course, "QUESTIONÁRIO DE PRÉ-TESTE – VALIDAÇÃO DAS CAUSAS DE EVASÃO\nE JULGAMENTOS AHP", description, selectedVinculoGroupIds, includePairQuestions: true, includeAllGroupsInVinculoQuestion: true, useGroupCodesInVinculoQuestion: false, includeProfilePrincipalAtuacaoQuestion: true);
+				string content = BuildFormsAppsScript(groupNames, groupIds, causeRows, institution, course, "QUESTIONÁRIO DE VALIDAÇÃO DAS CAUSAS\nE PESO DOS GRUPOS", description, null, includePairQuestions: true, includeAllGroupsInVinculoQuestion: true, useGroupCodesInVinculoQuestion: false, includeProfilePrincipalAtuacaoQuestion: true);
 				await FileIO.WriteTextAsync(selectedFile, content);
 				await ShowQ1ExportNextStepsDialogAsync(saveLocation, content);
 			}
 			catch (Exception ex)
 			{
-				await ShowMessageAsync("Erro ao exportar", "Não foi possível exportar q1.txt.\n\n" + ex.Message);
+				await ShowMessageAsync("Erro ao gerar questionário", "Não foi possível salvar o arquivo do questionário de validação.\n\n" + ex.Message);
 			}
 		}
 	}
@@ -4529,14 +4785,14 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		List<string> groupIds = groupItems.Select((NamedListItem item) => item.ItemId.Trim()).ToList();
 		if (groupNames.Count < 2)
 		{
-			await ShowMessageAsync("Grupos insuficientes", "Cadastre ao menos dois grupos na sub-aba Grupos antes de exportar q2.txt.");
+			await ShowMessageAsync("Participantes insuficientes", "Cadastre ao menos dois grupos participantes antes de gerar o questionário final.");
 			return;
 		}
 		RebuildQ1TableRows();
 		List<string> causeRows = BuildApprovedCauseLabelsForQ2();
 		if (causeRows.Count < 2)
 		{
-			await ShowMessageAsync("Causas aprovadas insuficientes", "É necessário ter ao menos duas causas aprovadas na sub-aba Validação para exportar q2.txt.");
+			await ShowMessageAsync("Causas aprovadas insuficientes", "É necessário ter ao menos duas causas aprovadas para gerar o questionário final.");
 			return;
 		}
 		if ((object)App.MainWindowInstance == null)
@@ -4563,14 +4819,14 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			{
 				string institution = (currentProject.Name ?? string.Empty).Trim();
 				string course = (currentProject.Course ?? string.Empty).Trim();
-				string q2Description = "Prezado(a) participante,\n\nEste questionário integra a etapa final da pesquisa de mestrado sobre a evasão no curso de Licenciatura em Física. O objetivo é mensurar a intensidade com que diferentes fatores influenciam a decisão de evasão em nosso curso. Sua resposta é anônima e fundamental para a elaboração de um plano de ações. O tempo estimado de preenchimento é de 5 minutos.";
-				string content = BuildFormsAppsScript(groupNames, groupIds, causeRows, institution, course, "QUESTIONÁRIO FINAL - AVALIAÇÃO DA INTENSIDADE DAS CAUSAS", q2Description, null, includePairQuestions: false, includeAllGroupsInVinculoQuestion: true, useGroupCodesInVinculoQuestion: false, includeProfilePrincipalAtuacaoQuestion: false);
+				string q2Description = "Prezado(a) participante,\n\nEste questionário ajuda a medir a intensidade das causas aprovadas na etapa anterior. Sua resposta é anônima e será usada para montar o ranking final de prioridades da escola ou curso. O tempo estimado de preenchimento é de 5 minutos.";
+				string content = BuildFormsAppsScript(groupNames, groupIds, causeRows, institution, course, "QUESTIONÁRIO FINAL - INTENSIDADE DAS CAUSAS", q2Description, null, includePairQuestions: false, includeAllGroupsInVinculoQuestion: true, useGroupCodesInVinculoQuestion: false, includeProfilePrincipalAtuacaoQuestion: false);
 				await FileIO.WriteTextAsync(selectedFile, content);
 				await ShowQ2ExportNextStepsDialogAsync(saveLocation, content);
 			}
 			catch (Exception ex)
 			{
-				await ShowMessageAsync("Erro ao exportar", "Não foi possível exportar q2.txt.\n\n" + ex.Message);
+				await ShowMessageAsync("Erro ao gerar questionário", "Não foi possível salvar o arquivo do questionário final.\n\n" + ex.Message);
 			}
 		}
 	}
@@ -4756,8 +5012,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		if (includePairQuestions)
 		{
 			scriptBuilder.AppendLine("  var secaoComparacoesAhp = form.addPageBreakItem();");
-			scriptBuilder.AppendLine("  secaoComparacoesAhp.setTitle('JULGAMENTOS PARA O AHP');");
-			scriptBuilder.AppendLine("  secaoComparacoesAhp.setHelpText('Nesta seção, pedimos que você compare a importância relativa das percepções de cada grupo para definir prioridades de ações contra a evasão, utilizando a escala Saaty de 1 a 9.\\n\\n1 = Igual\\n3 = Moderada\\n5 = Forte\\n7 = Muito forte\\n9 = Extrema\\n\\n2, 4, 6, 8 Valores intermediários entre os julgamentos anteriores');");
+			scriptBuilder.AppendLine("  secaoComparacoesAhp.setTitle('COMPARAÇÃO DE IMPORTÂNCIA DOS GRUPOS');");
+			scriptBuilder.AppendLine("  secaoComparacoesAhp.setHelpText('Nesta seção, compare qual grupo deve ter mais peso na definição das prioridades de ação. Use a escala de 1 a 9.\\n\\n1 = Igual\\n3 = Moderada\\n5 = Forte\\n7 = Muito forte\\n9 = Extrema\\n\\n2, 4, 6, 8 = valores intermediários.');");
 			scriptBuilder.AppendLine();
 			int questionNumber = 2;
 			for (int i = 0; i < groupNames.Count; i++)
@@ -4768,8 +5024,8 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 					string groupNameB = groupNames[j];
 					string groupAOption = EscapeJavaScriptSingleQuoted(groupNameA);
 					string groupBOption = EscapeJavaScriptSingleQuoted(groupNameB);
-					string titleA = EscapeJavaScriptSingleQuoted(groupNameA + " ou " + groupNameB + ": qual é mais relevante para decidir as prioridades de ações contra a evasão?");
-					string titleB = EscapeJavaScriptSingleQuoted($"Na comparação {groupNameA} ou {groupNameB} acima, qual a intensidade da importância relativa do grupo escolhido? Se você marcou \"Igual\", assinale 1.");
+					string titleA = EscapeJavaScriptSingleQuoted(groupNameA + " ou " + groupNameB + ": qual grupo deve ter mais peso na decisão das prioridades?");
+					string titleB = EscapeJavaScriptSingleQuoted($"Na comparação {groupNameA} ou {groupNameB} acima, qual é a força dessa diferença? Se você marcou \"Igual\", assinale 1.");
 					stringBuilder = scriptBuilder;
 					StringBuilder stringBuilder13 = stringBuilder;
 					handler = new StringBuilder.AppendInterpolatedStringHandler(46, 1, stringBuilder);
@@ -4856,7 +5112,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		string normalizedInstitution = (string.IsNullOrWhiteSpace(institution) ? "instituição não informada" : institution.Trim());
 		string normalizedCourse = (string.IsNullOrWhiteSpace(course) ? "curso não informado" : course.Trim());
-		return "Prezados(as),\n\n" + $"Este instrumento faz parte da etapa de pré-teste da pesquisa de mestrado sobre a evasão no curso de {normalizedCourse} do(a) {normalizedInstitution}. " + "Seus objetivos são: (1) validar a clareza e a relevância das causas de evasão identificadas na literatura; e (2) definir os pesos dos grupos de atores para a tomada de decisão. A participação é voluntária e anônima. O tempo estimado de preenchimento é de 10 a 15 minutos.";
+		return "Prezados(as),\n\n" + $"Este questionário ajuda a validar as possíveis causas de evasão no curso de {normalizedCourse} do(a) {normalizedInstitution}. " + "Ele também coleta comparações entre grupos participantes para definir os pesos usados na priorização. A participação é voluntária e anônima. O tempo estimado de preenchimento é de 10 a 15 minutos.";
 	}
 
 	private async Task ShowQ1ExportNextStepsDialogAsync(string saveLocation, string scriptContent)
@@ -4871,7 +5127,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 
 	private async Task ShowFormsExportNextStepsDialogAsync(string saveLocation, string txtFileName, string csvFileName, bool includesPairQuestions, string scriptContent)
 	{
-		string instructions = "1. Acesse https://script.google.com/ e crie um projeto.\n2. Abra Código.gs e apague o conteúdo atual.\n3. Cole todo o conteúdo do " + txtFileName + ".\n4. Salve e execute a função criarFormulario.\n5. Autorize as permissões.\n6. Abra o Forms criado e receba as respostas.\n7. Exporte as respostas para " + csvFileName + ".";
+		string instructions = "1. Acesse https://script.google.com/ e crie um projeto.\n2. Abra Código.gs e apague o conteúdo atual.\n3. Cole todo o conteúdo do arquivo " + txtFileName + ".\n4. Salve e execute a função criarFormulario.\n5. Autorize as permissões solicitadas pelo Google.\n6. Abra o Google Forms criado e compartilhe o link com os participantes.\n7. Depois da coleta, exporte as respostas como " + csvFileName + " e importe aqui no app.";
 		StackPanel contentPanel = new StackPanel
 		{
 			Spacing = 8.0,
@@ -4898,9 +5154,9 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		};
 		contentPanel.Children.Add(actionStatusTextBlock);
 		ContentDialog contentDialog = new ContentDialog();
-		contentDialog.Title = "Próximo passo: usar " + txtFileName + " no Apps Script";
+		contentDialog.Title = "Questionário pronto para Google Forms";
 		contentDialog.Content = contentPanel;
-		contentDialog.PrimaryButtonText = "Abrir Apps Script";
+		contentDialog.PrimaryButtonText = "Abrir Google Apps Script";
 		contentDialog.SecondaryButtonText = "Copiar script";
 		contentDialog.CloseButtonText = "Fechar";
 		contentDialog.DefaultButton = ContentDialogButton.Close;
@@ -4912,7 +5168,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			try
 			{
 				bool launched = await Launcher.LaunchUriAsync(new Uri("https://script.google.com/"));
-				actionStatusTextBlock.Text = (launched ? "Apps Script aberto. O diálogo permanece aberto." : "Não foi possível abrir o Apps Script automaticamente.");
+				actionStatusTextBlock.Text = (launched ? "Google Apps Script aberto. O diálogo permanece aberto." : "Não foi possível abrir o Google Apps Script automaticamente.");
 			}
 			finally
 			{
@@ -4944,7 +5200,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		}
 		if (!string.Equals(Path.GetFileName(sourceCsvPath), "q2.csv", StringComparison.OrdinalIgnoreCase))
 		{
-			await ShowMessageAsync("Arquivo inválido", "Selecione um arquivo chamado q2.csv.");
+			await ShowMessageAsync("Arquivo inválido", "Selecione o arquivo q2.csv exportado do questionário final.");
 			return;
 		}
 		string destinationCsvPath = Path.Combine(currentProject.FolderPath, "q2.csv");
@@ -4954,11 +5210,11 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			File.Copy(sourceCsvPath, destinationCsvPath, overwrite: true);
 			LoadQ2TableFromFile(destinationCsvPath);
 			MarkProjectAsModified();
-			await ShowMessageAsync("Importação concluída", "Arquivo importado para:\n" + destinationCsvPath);
+			await ShowMessageAsync("Importação concluída", "Respostas finais importadas para:\n" + destinationCsvPath);
 		}
 		catch (Exception ex)
 		{
-			await ShowMessageAsync("Erro ao importar", "Não foi possível importar q2.csv.\n\n" + ex.Message);
+			await ShowMessageAsync("Erro ao importar", "Não foi possível importar as respostas finais.\n\n" + ex.Message);
 		}
 	}
 
@@ -4966,7 +5222,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		if (currentProject != null)
 		{
-			string contentText = ((q2Rows.Count > 0) ? $"Deseja realmente limpar a tabela TOPSIS ({q2Rows.Count} linhas)?" : "Deseja realmente limpar a tabela TOPSIS?");
+			string contentText = ((q2Rows.Count > 0) ? $"Deseja realmente limpar o ranking final ({q2Rows.Count} linhas)?" : "Deseja realmente limpar o ranking final?");
 			if (await new ContentDialog
 			{
 				Title = "Confirmar limpeza",
@@ -4980,7 +5236,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 				q2Rows.Clear();
 				q2Alternatives.Clear();
 				q2ResponseCount = 0;
-				TopsisStatusTextBlock.Text = "Tabela TOPSIS limpa.";
+				TopsisStatusTextBlock.Text = "Ranking final limpo.";
 				RefreshReportsSection();
 			}
 		}
@@ -5094,9 +5350,9 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		string countMessage = groups.Count switch
 		{
-			0 => "Nenhum grupo cadastrado.", 
-			1 => "1 grupo cadastrado.", 
-			_ => $"{groups.Count} grupos cadastrados.", 
+			0 => "Nenhum grupo participante cadastrado.", 
+			1 => "1 grupo participante cadastrado.", 
+			_ => $"{groups.Count} grupos participantes cadastrados.", 
 		};
 		GroupsStatusTextBlock.Text = (string.IsNullOrWhiteSpace(actionMessage) ? countMessage : (actionMessage + " " + countMessage));
 	}
@@ -5115,11 +5371,11 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		UpdateAhpGlobalCrSummary(hasComputedData);
 		string defaultMessage = groups.Count switch
 		{
-			0 => "Nenhum grupo disponível para AHP.", 
-			1 => "1 grupo disponível para AHP.", 
-			_ => $"{groups.Count} grupos disponíveis para AHP.", 
+			0 => "Nenhum grupo participante disponível para calcular pesos.", 
+			1 => "1 grupo participante disponível para calcular pesos.", 
+			_ => $"{groups.Count} grupos participantes disponíveis para calcular pesos.", 
 		};
-		string countMessage = ((hasComputedData && ahpCrPercent.HasValue) ? $"{groups.Count} grupos calculados com {ahpResponseCount} respostas. CR = {ahpCrPercent.Value.ToString("F1", CultureInfo.CurrentCulture)}%." : defaultMessage);
+		string countMessage = ((hasComputedData && ahpCrPercent.HasValue) ? $"{groups.Count} grupos participantes ponderados com {ahpResponseCount} respostas. Consistência = {ahpCrPercent.Value.ToString("F1", CultureInfo.CurrentCulture)}%." : defaultMessage);
 		if ((object)TeamAhpTextBlock != null)
 		{
 			TeamAhpTextBlock.Text = (string.IsNullOrWhiteSpace(actionMessage) ? countMessage : (actionMessage + " " + countMessage));
@@ -5147,11 +5403,11 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 		double consistencyLimit = (((object)AhpConsistencyNumberBox != null && !double.IsNaN(AhpConsistencyNumberBox.Value)) ? AhpConsistencyNumberBox.Value : 0.0);
 		if (cr <= consistencyLimit)
 		{
-			SetAhpCrBadge("Consistente (<= " + consistencyLimit.ToString("F1", CultureInfo.CurrentCulture) + "%)", ColorHelper.FromArgb(byte.MaxValue, 223, 246, 221), ColorHelper.FromArgb(byte.MaxValue, 45, 125, 47), ColorHelper.FromArgb(byte.MaxValue, 27, 94, 32));
+			SetAhpCrBadge("Comparações consistentes (<= " + consistencyLimit.ToString("F1", CultureInfo.CurrentCulture) + "%)", ColorHelper.FromArgb(byte.MaxValue, 223, 246, 221), ColorHelper.FromArgb(byte.MaxValue, 45, 125, 47), ColorHelper.FromArgb(byte.MaxValue, 27, 94, 32));
 		}
 		else
 		{
-			SetAhpCrBadge("Inconsistente (> " + consistencyLimit.ToString("F1", CultureInfo.CurrentCulture) + "%)", ColorHelper.FromArgb(byte.MaxValue, 253, 231, 233), ColorHelper.FromArgb(byte.MaxValue, 197, 15, 31), ColorHelper.FromArgb(byte.MaxValue, 138, 17, 29));
+			SetAhpCrBadge("Comparações inconsistentes (> " + consistencyLimit.ToString("F1", CultureInfo.CurrentCulture) + "%)", ColorHelper.FromArgb(byte.MaxValue, 253, 231, 233), ColorHelper.FromArgb(byte.MaxValue, 197, 15, 31), ColorHelper.FromArgb(byte.MaxValue, 138, 17, 29));
 		}
 	}
 
@@ -5188,9 +5444,9 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 	{
 		string countMessage = causes.Count switch
 		{
-			0 => "Nenhuma causa cadastrada.", 
-			1 => "1 causa cadastrada.", 
-			_ => $"{causes.Count} causas cadastradas.", 
+			0 => "Nenhuma causa possível cadastrada.", 
+			1 => "1 causa possível cadastrada.", 
+			_ => $"{causes.Count} causas possíveis cadastradas.", 
 		};
 		CausesStatusTextBlock.Text = (string.IsNullOrWhiteSpace(actionMessage) ? countMessage : (actionMessage + " " + countMessage));
 	}
@@ -5268,19 +5524,19 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			ReportsRespondentsValueTextBlock = target.As<TextBlock>();
 			break;
 		case 15:
-			target.As<Button>().Click += OnRefreshReportsClicked;
+			SetButtonText(target, "Atualizar relatório").Click += OnRefreshReportsClicked;
 			break;
 		case 16:
-			target.As<Button>().Click += OnExportReportsCsvClicked;
+			SetButtonText(target, "Exportar relatório").Click += OnExportReportsCsvClicked;
 			break;
 		case 17:
 			target.As<Button>().Click += OnCopyReportsSummaryClicked;
 			break;
 		case 18:
-			target.As<Button>().Click += OnImportQ2CsvClicked;
+			SetButtonText(target, "Importar respostas finais").Click += OnImportQ2CsvClicked;
 			break;
 		case 19:
-			target.As<Button>().Click += OnClearQ2TableClicked;
+			SetButtonText(target, "Limpar ranking").Click += OnClearQ2TableClicked;
 			break;
 		case 20:
 			TopsisStatusTextBlock = target.As<TextBlock>();
@@ -5295,7 +5551,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			AhpTableListView = target.As<ListView>();
 			break;
 		case 34:
-			target.As<Button>().Click += OnExportQ2TxtClicked;
+			SetButtonText(target, "Gerar questionário final").Click += OnExportQ2TxtClicked;
 			break;
 		case 35:
 			AhpGlobalCrTextBlock = target.As<TextBlock>();
@@ -5318,7 +5574,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			Q1TableListView = target.As<ListView>();
 			break;
 		case 53:
-			target.As<Button>().Click += OnClearQ1TableClicked;
+			SetButtonText(target, "Limpar validação").Click += OnClearQ1TableClicked;
 			break;
 		case 54:
 			Scale5CheckBox = target.As<CheckBox>();
@@ -5351,12 +5607,12 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			ValidationProportionNumberBox.LostFocus += OnValidationProportionLostFocus;
 			break;
 		case 60:
-			ValidationAverageNumberBox = target.As<NumberBox>();
-			ValidationAverageNumberBox.ValueChanged += OnValidationAverageValueChanged;
-			ValidationAverageNumberBox.LostFocus += OnValidationAverageLostFocus;
+			ValidationMedianNumberBox = target.As<NumberBox>();
+			ValidationMedianNumberBox.ValueChanged += OnValidationMedianValueChanged;
+			ValidationMedianNumberBox.LostFocus += OnValidationMedianLostFocus;
 			break;
 		case 61:
-			target.As<Button>().Click += OnImportQ1CsvClicked;
+			SetButtonText(target, "Importar respostas de validação").Click += OnImportQ1CsvClicked;
 			break;
 		case 62:
 			CausesStatusTextBlock = target.As<TextBlock>();
@@ -5366,30 +5622,30 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			CausesListView.SelectionChanged += OnCausesSelectionChanged;
 			break;
 		case 68:
-			target.As<Button>().Click += OnExportQ1TxtClicked;
+			SetButtonText(target, "Gerar questionário de validação").Click += OnExportQ1TxtClicked;
 			break;
 		case 69:
 			Q1VinculoGroupsItemsControl = target.As<ItemsControl>();
 			break;
 		case 74:
-			target.As<Button>().Click += OnImportCausesCsvClicked;
+			SetButtonText(target, "Importar lista de causas").Click += OnImportCausesCsvClicked;
 			break;
 		case 75:
 			target.As<Button>().Click += OnDownloadCausesTemplateClicked;
 			break;
 		case 76:
-			target.As<Button>().Click += OnClearCausesClicked;
+			SetButtonText(target, "Limpar causas possíveis").Click += OnClearCausesClicked;
 			break;
 		case 77:
 			DeleteCauseButton = target.As<Button>();
 			DeleteCauseButton.Click += OnDeleteCauseClicked;
 			break;
 		case 78:
-			RenameCauseButton = target.As<Button>();
+			RenameCauseButton = SetButtonText(target, "Editar nome");
 			RenameCauseButton.Click += OnRenameCauseClicked;
 			break;
 		case 79:
-			target.As<Button>().Click += OnAddCauseClicked;
+			SetButtonText(target, "Adicionar causa possível").Click += OnAddCauseClicked;
 			break;
 		case 80:
 			GroupsStatusTextBlock = target.As<TextBlock>();
@@ -5399,10 +5655,10 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			GroupsListView.SelectionChanged += OnGroupsSelectionChanged;
 			break;
 		case 86:
-			target.As<Button>().Click += OnAddGroupClicked;
+			SetButtonText(target, "Adicionar participante").Click += OnAddGroupClicked;
 			break;
 		case 87:
-			RenameGroupButton = target.As<Button>();
+			RenameGroupButton = SetButtonText(target, "Editar nome");
 			RenameGroupButton.Click += OnRenameGroupClicked;
 			break;
 		case 88:
@@ -5410,7 +5666,7 @@ public sealed class ProjectDetailsPage : Page, IComponentConnector
 			DeleteGroupButton.Click += OnDeleteGroupClicked;
 			break;
 		case 89:
-			target.As<Button>().Click += OnClearGroupsClicked;
+			SetButtonText(target, "Limpar participantes").Click += OnClearGroupsClicked;
 			break;
 		case 90:
 			ProjectNameTextBlock = target.As<TextBlock>();

@@ -16,13 +16,13 @@ public sealed class Q1TableRow
 
 	public string Value5 { get; }
 
-	public string Average { get; }
+	public string Median { get; }
 
 	public string Proportion { get; }
 
 	public string Status { get; }
 
-	public Q1TableRow(string number, string cause, string value1, string value2, string value3, string value4, string value5, string average, string proportion, string status)
+	public Q1TableRow(string number, string cause, string value1, string value2, string value3, string value4, string value5, string median, string proportion, string status)
 	{
 		Number = number;
 		Cause = cause;
@@ -31,7 +31,7 @@ public sealed class Q1TableRow
 		Value3 = value3;
 		Value4 = value4;
 		Value5 = value5;
-		Average = average;
+		Median = median;
 		Proportion = proportion;
 		Status = status;
 	}

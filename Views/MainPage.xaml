@@ -36,11 +36,11 @@
         </Grid.RowDefinitions>
 
         <StackPanel Spacing="6">
-            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Projetos" />
+            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Projetos escolares" />
             <TextBlock
                 MaxWidth="880"
                 Style="{StaticResource CaptionTextStyle}"
-                Text="Abra, renomeie ou exclua o projeto selecionado." />
+                Text="Selecione uma escola ou curso para continuar." />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
@@ -58,7 +58,7 @@
                         <ColumnDefinition Width="1.2*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock FontWeight="SemiBold" Text="Instituicao" />
+                    <TextBlock FontWeight="SemiBold" Text="Instituição" />
                     <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="Curso" />
                     <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="Criado em" />
                     <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="Alterado em" />
@@ -108,7 +108,7 @@
             HorizontalAlignment="Right"
             Orientation="Horizontal"
             Spacing="12">
-            <Button Content="Criar projeto" Click="OnCreateClicked" />
+            <Button Content="Criar projeto escolar" Click="OnCreateClicked" />
             <Button
                 x:Name="OpenButton"
                 Click="OnOpenClicked"
@@ -117,7 +117,7 @@
             <Button
                 x:Name="RenameButton"
                 Click="OnRenameClicked"
-                Content="Renomear"
+                Content="Editar nome"
                 IsEnabled="False" />
             <Button
                 x:Name="DeleteButton"

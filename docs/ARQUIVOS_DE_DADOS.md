@@ -2,7 +2,7 @@
 
 ## Arquivos por projeto
 
-Cada projeto usa uma pasta própria em `%LocalAppData%\\SADMAT\\Projects\\<NomeDoProjeto>`.
+Cada projeto usa uma pasta própria em `%LocalAppData%\\SIGEV\\Projects\\<NomeDoProjeto>`.
 
 Nessa pasta, os arquivos mais relevantes são:
 

@@ -18,7 +18,7 @@ Ao criar um projeto, o app pede instituição e curso e cria automaticamente uma
 3. Exporte `q1.txt` para gerar o formulário de pré-teste no Google Forms.
 4. Colete as respostas e exporte `q1.csv`.
 5. Importe `q1.csv` na seção `Validação Q1`.
-6. Revise as causas aprovadas com base na média mínima e na proporção mínima configuradas.
+6. Revise as causas aprovadas com base na mediana mínima e na proporção mínima configuradas.
 7. Verifique os pesos AHP e o `CR` global na seção `AHP`.
 8. Exporte `q2.txt` para gerar o formulário final.
 9. Colete as respostas e exporte `q2.csv`.
@@ -44,7 +44,7 @@ Ao criar um projeto, o app pede instituição e curso e cria automaticamente uma
 
 - Importa `q1.csv`.
 - Filtra visualmente a escala Likert.
-- Aplica corte por média mínima e proporção mínima.
+- Aplica corte por mediana mínima e proporção mínima.
 - Marca cada causa como aprovada ou não.
 
 ### Causas
@@ -62,4 +62,4 @@ Ao criar um projeto, o app pede instituição e curso e cria automaticamente uma
 
 ## Armazenamento local
 
-Os dados do app ficam em `%LocalAppData%\\SADMAT`, com um `projects.json` na raiz e uma pasta para cada projeto em `%LocalAppData%\\SADMAT\\Projects`.
+Os dados do app ficam em `%LocalAppData%\\SIGEV`, com um `projects.json` na raiz e uma pasta para cada projeto em `%LocalAppData%\\SIGEV\\Projects`. Se houver dados antigos em `%LocalAppData%\\SADMAT`, o app copia esses dados automaticamente na primeira execução.

@@ -56,7 +56,7 @@ public class App : Application, IXamlMetadataProvider
 			window = new Window();
 		}
 		MainWindowInstance = window;
-		window.Title = "SADMAT - Sistema de Apoio à Decisão Multicritério AHP-TOPSIS";
+		window.Title = "SIGEV - Sistema Inteligente de Gestão da Evasão";
 		Frame rootFrame = window.Content as Frame;
 		if ((object)rootFrame == null)
 		{
@@ -78,7 +78,7 @@ public class App : Application, IXamlMetadataProvider
 	{
 		try
 		{
-			string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "SADMAT.ico");
+			string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "SIGEV.ico");
 			if (File.Exists(iconPath))
 			{
 				AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WindowNative.GetWindowHandle(targetWindow))).SetIcon(iconPath);

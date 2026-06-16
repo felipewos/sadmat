@@ -413,7 +413,7 @@ public class MainPage : Page, IComponentConnector
 			contentPanel.Children.Add(courseTextBox);
 			if (await new ContentDialog
 			{
-				Title = "Criar projeto",
+				Title = "Criar projeto escolar",
 				Content = contentPanel,
 				PrimaryButtonText = "Criar",
 				CloseButtonText = "Cancelar",
@@ -429,7 +429,7 @@ public class MainPage : Page, IComponentConnector
 			{
 				break;
 			}
-			await ShowMessageAsync("Campos obrigatórios", "Preencha Instituição e Curso para criar o projeto.");
+			await ShowMessageAsync("Campos obrigatórios", "Preencha Instituição e Curso para criar o projeto escolar.");
 		}
 		try
 		{
@@ -443,7 +443,7 @@ public class MainPage : Page, IComponentConnector
 		}
 		catch (Exception ex)
 		{
-			await ShowMessageAsync("Erro ao criar projeto", "Não foi possível criar a pasta do projeto.\n\n" + ex.Message);
+			await ShowMessageAsync("Erro ao criar projeto", "Não foi possível criar a pasta do projeto escolar.\n\n" + ex.Message);
 		}
 	}
 
@@ -491,7 +491,7 @@ public class MainPage : Page, IComponentConnector
 			contentPanel.Children.Add(courseTextBox);
 			if (await new ContentDialog
 			{
-				Title = "Editar projeto",
+				Title = "Editar projeto escolar",
 				Content = contentPanel,
 				PrimaryButtonText = "Salvar",
 				CloseButtonText = "Cancelar",
@@ -507,7 +507,7 @@ public class MainPage : Page, IComponentConnector
 			{
 				break;
 			}
-			await ShowMessageAsync("Campos obrigatórios", "Preencha Instituição e Curso para salvar o projeto.");
+			await ShowMessageAsync("Campos obrigatórios", "Preencha Instituição e Curso para salvar o projeto escolar.");
 		}
 		try
 		{
@@ -520,7 +520,7 @@ public class MainPage : Page, IComponentConnector
 		}
 		catch (Exception ex)
 		{
-			await ShowMessageAsync("Erro ao renomear projeto", "Não foi possível renomear a pasta do projeto.\n\n" + ex.Message);
+			await ShowMessageAsync("Erro ao renomear projeto", "Não foi possível renomear a pasta do projeto escolar.\n\n" + ex.Message);
 		}
 	}
 
@@ -530,7 +530,7 @@ public class MainPage : Page, IComponentConnector
 		if (!(selectedItem is ProjectItem selectedProject) || await new ContentDialog
 		{
 			Title = "Confirmar exclusão",
-			Content = "Deseja realmente excluir o projeto \"" + selectedProject.Name + "\" e a pasta dele?",
+			Content = "Deseja realmente excluir o projeto escolar \"" + selectedProject.Name + "\" e a pasta dele?",
 			PrimaryButtonText = "Excluir",
 			CloseButtonText = "Cancelar",
 			DefaultButton = ContentDialogButton.Close,
@@ -548,7 +548,7 @@ public class MainPage : Page, IComponentConnector
 		}
 		catch (Exception ex)
 		{
-			await ShowMessageAsync("Erro ao excluir projeto", "Não foi possível excluir a pasta do projeto.\n\n" + ex.Message);
+			await ShowMessageAsync("Erro ao excluir projeto", "Não foi possível excluir a pasta do projeto escolar.\n\n" + ex.Message);
 		}
 	}
 
@@ -646,7 +646,7 @@ public class MainPage : Page, IComponentConnector
 			switch (await new ContentDialog
 			{
 				Title = "Pasta não encontrada",
-				Content = "A pasta do projeto \"" + selectedProject.Name + "\" não foi encontrada.\n\nDeseja recriar a pasta ou remover este projeto da lista?",
+				Content = "A pasta do projeto escolar \"" + selectedProject.Name + "\" não foi encontrada.\n\nDeseja recriar a pasta ou remover este projeto da lista?",
 				PrimaryButtonText = "Recriar pasta",
 				SecondaryButtonText = "Remover projeto",
 				CloseButtonText = "Cancelar",
@@ -672,7 +672,7 @@ public class MainPage : Page, IComponentConnector
 			}
 			catch (Exception ex)
 			{
-				await ShowMessageAsync("Erro ao recriar pasta", "Não foi possível recriar a pasta do projeto.\n\n" + ex.Message);
+				await ShowMessageAsync("Erro ao recriar pasta", "Não foi possível recriar a pasta do projeto escolar.\n\n" + ex.Message);
 				return;
 			}
 		}

@@ -2,7 +2,7 @@
 
 ## Visão geral
 
-SADMAT é um aplicativo WinUI 3 focado em apoio à decisão multicritério para análise de evasão estudantil com AHP e TOPSIS.
+SIGEV - Sistema Inteligente de Gestão da Evasão é um aplicativo WinUI 3 focado em análise, aprovação e priorização de causas de evasão estudantil. A interface usa termos como participantes, aprovação, peso dos grupos e ranking final; os métodos AHP e TOPSIS permanecem como base técnica interna.
 
 ## Estrutura relevante
 
@@ -20,17 +20,33 @@ SADMAT é um aplicativo WinUI 3 focado em apoio à decisão multicritério para 
 
 ## Build
 
-Comando validado:
+Comando de desenvolvimento:
 
 ```powershell
 dotnet build PrimeiraTelaWinUI.csproj -c Debug
 ```
 
-Executável gerado:
+Comando de distribuição:
+
+```powershell
+dotnet publish PrimeiraTelaWinUI.csproj -c Release -r win-x64 --self-contained true -o dist\SIGEV-Distribuicao
+```
+
+Executável de distribuição:
 
 ```text
-bin\Debug\net8.0-windows10.0.19041.0\PrimeiraTelaWinUI.exe
+dist\SIGEV-Distribuicao\PrimeiraTelaWinUI.exe
 ```
+
+Entrega final:
+
+```text
+dist\SIGEV-Instalador.exe
+dist\SIGEV-Distribuicao\
+dist\SIGEV-Distribuicao.zip
+```
+
+Use `dist\SIGEV-Instalador.exe` como arquivo final para instalação pelos usuários. O `PrimeiraTelaWinUI.exe` em `dist\SIGEV-Distribuicao\` é o executável interno do aplicativo publicado.
 
 ## Próximos ajustes possíveis
 
